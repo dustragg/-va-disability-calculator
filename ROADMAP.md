@@ -1,0 +1,332 @@
+# VA Disability Rating Estimator Roadmap
+
+## Current project status
+
+The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not store personal data, manage accounts, upload documents, parse DBQs, or provide legal, medical, or VA claims advice.
+
+Current capabilities include:
+
+- Version 1 condition modules with regulatory audit notes.
+- Version 2 lumbar spine and separate left/right lower-extremity radiculopathy modules.
+- Combined-rating VA math using individual estimates and 38 CFR § 4.25-style rounding.
+- In-browser form inputs and live results.
+- Static hosting with no server-side persistence.
+
+## Completed versions
+
+### Version 1: regulatory-audited estimator foundation
+
+Completed Version 1 modules:
+
+- Migraines.
+- Neck / cervical spine limitation of motion.
+- Shoulder limitation of motion.
+- Flat feet / pes planus.
+- Bunion / hallux valgus.
+- GERD under the current GERD diagnostic-code approach.
+- Hypertension.
+- Sleep apnea.
+
+Version 1 also established:
+
+- A consistent condition-module structure.
+- In-app regulatory audit notes.
+- Evidence and scope cautions.
+- Combined-rating output for selected compensable estimates.
+
+### Version 2: lumbar spine and lower-extremity radiculopathy
+
+Completed Version 2 modules:
+
+- Lumbar spine / thoracolumbar limitation of motion.
+- IVDS comparison within the lumbar spine estimate.
+- Left lower-extremity sciatic radiculopathy.
+- Right lower-extremity sciatic radiculopathy.
+
+Version 2 also added explicit cautions for:
+
+- Separate neurologic ratings.
+- Pyramiding risk.
+- Bilateral-factor limitations.
+- Evidence requirements for IVDS incapacitating episodes.
+
+## Planned versions
+
+### Version 3: claim workspace data structure without persistence
+
+Goal: introduce the architecture for a future Personal VA Claim Workspace while keeping the app static and preserving the existing estimator.
+
+Planned work:
+
+- Define condition-template metadata for mapped and unmapped conditions.
+- Separate rating logic from claim-tracking fields.
+- Add client-side-only data shapes for symptoms, frequency, severity, medications, flare-ups, functional impact, doctor comments, radiology findings, DBQ findings, and evidence notes.
+- Add conservative, realistic, and optimistic estimate-mode definitions without changing existing calculations.
+- Add evidence-gap categories and documentation suggestions as structured metadata.
+
+### Version 4: local claim workspace prototype
+
+Goal: allow users to manage a personal claim workspace in the browser without accounts, cloud storage, or server persistence.
+
+Potential implementation options:
+
+- Start with in-memory state and downloadable JSON exports.
+- Add optional browser local storage only after privacy warnings and explicit user controls.
+- Support unlimited user-added conditions as tracking records.
+- Allow mapped conditions to connect to rating templates while unmapped conditions remain tracking-only.
+
+### Version 5: reports and export workflows
+
+Goal: help users prepare claim-review materials from their own entered data.
+
+Planned work:
+
+- Claim-preparation summary generation.
+- Condition-by-condition evidence summaries.
+- Evidence-gap checklists.
+- Export to JSON and printable HTML/PDF-friendly layouts.
+- Plain-language summaries of symptoms, functional impact, and supporting evidence.
+
+### Version 6: document-ready architecture
+
+Goal: prepare for eventual document upload and DBQ parsing without implementing those features prematurely.
+
+Planned work:
+
+- Define document metadata models.
+- Define evidence-source references that can point to future uploaded files.
+- Define DBQ-field mapping targets.
+- Add parser-boundary interfaces so future ingestion cannot directly alter rating calculations without review.
+
+## Technical architecture roadmap
+
+The recommended architecture is a layered client-first architecture that can remain static today and evolve later if persistence, accounts, or document ingestion become appropriate.
+
+### 1. Condition templates
+
+Condition templates should describe each condition independently from user-specific claim records.
+
+A future template should include:
+
+- Stable condition ID.
+- Display name.
+- Diagnostic-code and CFR references.
+- Mapped/unmapped status.
+- Applicable body system.
+- Rating-question definitions.
+- Rating-logic function or rule table for mapped conditions.
+- Required evidence categories.
+- Common evidence gaps.
+- Documentation suggestions.
+- Pyramiding and bilateral-factor cautions.
+- Last regulatory review date.
+
+Mapped condition templates should produce rating estimates. Unmapped templates should support tracking only and clearly state that no rating logic is available.
+
+### 2. Claim records
+
+A saved claim record should represent a user's personal working file, not a regulatory template.
+
+A future claim record should include:
+
+- Claim ID.
+- Claim name.
+- Created and updated timestamps.
+- List of condition records.
+- User-selected estimate mode.
+- Combined-rating snapshot.
+- Export history metadata.
+- User acknowledgements for privacy and educational-use warnings.
+
+### 3. Condition records
+
+A condition record should connect user-entered evidence to a condition template when available.
+
+A future condition record should include:
+
+- Record ID.
+- Template ID when mapped.
+- Custom condition name when unmapped.
+- Claimed theory, such as direct, secondary, increase, or presumptive.
+- Symptoms.
+- Symptom frequency.
+- Symptom severity.
+- Medications and treatment.
+- Flare-ups.
+- Functional impact.
+- Work impact.
+- Doctor comments.
+- Radiology findings.
+- DBQ findings.
+- Evidence notes.
+- Evidence-gap flags.
+- Documentation suggestions.
+- Conservative, realistic, and optimistic estimate snapshots.
+
+### 4. Estimate modes
+
+The future workspace should distinguish estimate modes without altering the audited baseline calculations.
+
+Recommended definitions:
+
+- Conservative: uses the lowest rating supported by clearly documented evidence.
+- Realistic: uses the most likely rating based on the overall entered evidence and current mapped criteria.
+- Optimistic: shows the highest plausible rating if unresolved evidence questions are documented favorably.
+
+Each mode should include a rationale and evidence-confidence indicator. Optimistic estimates should be labeled carefully and should never be presented as a predicted VA decision.
+
+### 5. Evidence tracking
+
+Evidence tracking should be structured but flexible.
+
+Recommended evidence categories:
+
+- Diagnosis evidence.
+- Current severity evidence.
+- Nexus or secondary-connection evidence.
+- Treatment records.
+- Medication records.
+- Lay statements.
+- Work-impact documentation.
+- Imaging and radiology.
+- DBQ or compensation-and-pension exam findings.
+- Missing or stale evidence.
+
+### 6. Future document ingestion
+
+Document ingestion should be isolated behind a review workflow.
+
+Recommended boundaries:
+
+- Uploaded documents should first become document records.
+- Parsed findings should become proposed evidence items.
+- Users should review and accept proposed evidence before it affects summaries or estimates.
+- Parser output should cite source document, page, and extracted field when available.
+- Rating logic should remain deterministic and auditable.
+
+## Data model roadmap
+
+Future data models should be designed around templates, records, evidence, and exports.
+
+Recommended top-level model families:
+
+- `ConditionTemplate`: reusable rating/tracking definitions.
+- `ClaimWorkspace`: the user's working claim file.
+- `ConditionRecord`: one claimed or tracked condition inside a workspace.
+- `EvidenceItem`: structured evidence entered manually or eventually extracted from documents.
+- `EstimateSnapshot`: conservative, realistic, and optimistic estimates with rationale.
+- `EvidenceGap`: a missing, stale, conflicting, or weak evidence item.
+- `DocumentationSuggestion`: a non-advisory prompt describing records or notes that may help document a claim.
+- `ExportPackage`: generated summaries and machine-readable exports.
+- `DocumentRecord`: future file metadata and ingestion status.
+- `ParsedFinding`: future extracted finding awaiting user review.
+
+## Future condition roadmap
+
+Future mapped-condition expansion should follow a repeatable process:
+
+1. Select high-impact conditions where schedular criteria can be represented reliably.
+2. Audit current CFR text and diagnostic-code history.
+3. Define condition-template questions and rating rules.
+4. Add evidence-gap definitions.
+5. Add documentation suggestions.
+6. Add tests for rating outputs and edge cases.
+7. Add in-app cautions for pyramiding, bilateral factors, secondary conditions, and criteria limitations.
+
+Potential future condition groups:
+
+- Additional peripheral nerve patterns.
+- Knee and ankle musculoskeletal conditions.
+- Hip and thigh limitations.
+- Scars and skin conditions.
+- Respiratory conditions.
+- Gastrointestinal conditions beyond GERD.
+- Hearing loss and tinnitus.
+- Mental-health conditions only if a careful, separately audited design can avoid misleading users.
+
+Unmapped condition support should arrive before aggressive mapped-condition expansion so users can track any claimed condition even when no rating logic exists.
+
+## Future evidence-tracking roadmap
+
+Evidence tracking should evolve in stages:
+
+1. Manual evidence notes attached to each condition.
+2. Structured fields for symptoms, severity, frequency, medications, flare-ups, functional impact, provider comments, imaging, and DBQ findings.
+3. Evidence-gap detection based on condition-template requirements.
+4. Documentation suggestions tied to each gap.
+5. Claim-preparation summary generation.
+6. Optional local import/export of evidence records.
+7. Future document metadata and parser-review workflow.
+
+Evidence-gap examples:
+
+- Diagnosis present but current severity not documented.
+- Symptoms described but frequency not documented.
+- Medication listed but dose or treatment response missing.
+- Imaging referenced but radiology findings not summarized.
+- Functional impact asserted but no work or daily-activity examples entered.
+- Secondary theory selected but no nexus evidence summarized.
+
+## Future export/reporting roadmap
+
+Export and reporting should prioritize user control, transparency, and portability.
+
+Recommended export formats:
+
+- JSON for backup and re-import.
+- Printable HTML for personal review.
+- PDF-friendly claim-preparation summaries.
+- CSV for evidence inventories.
+- Condition-by-condition markdown summaries.
+
+Recommended report sections:
+
+- Claim overview.
+- Conditions list.
+- Individual estimate modes.
+- Combined-rating estimate summary.
+- Evidence gaps.
+- Documentation suggestions.
+- Symptom and functional-impact summaries.
+- Medication and treatment summaries.
+- DBQ/radiology summary fields.
+- Disclaimer and limitations.
+
+## Risks and limitations
+
+Key risks:
+
+- Users may mistake educational estimates for VA decisions.
+- Regulations, M21-1 guidance, forms, and diagnostic criteria can change.
+- Evidence quality is highly fact-specific.
+- Pyramiding, bilateral factor, special monthly compensation, effective dates, service connection, and secondary theories are complex.
+- Optimistic estimate modes may create false confidence if not labeled carefully.
+- Document parsing can introduce errors, hallucinations, or missing context if not reviewed by users.
+- Storing claim data creates privacy and security responsibilities.
+
+Current intentional limitations:
+
+- No database.
+- No login or accounts.
+- No cloud storage.
+- No document upload.
+- No AI document parsing.
+- No new rating conditions in this roadmap change.
+- No modification to existing rating calculations.
+
+## Long-term vision: Personal VA Claim Workspace
+
+The long-term vision is to evolve from a condition estimator into a private, user-controlled Personal VA Claim Workspace. The workspace should help users organize conditions, symptoms, medical findings, treatment history, evidence notes, and claim-preparation summaries while preserving the transparent rating-estimation foundation that already exists.
+
+The end-state product should support:
+
+- Unlimited mapped and unmapped conditions.
+- Personal condition records with structured symptoms, severity, frequency, medications, flare-ups, functional impact, doctor comments, radiology findings, DBQ findings, and evidence notes.
+- Conservative, realistic, and optimistic estimate modes.
+- Evidence-gap detection.
+- Documentation suggestions that may strengthen a claim file.
+- Claim-preparation summaries.
+- User-controlled export and backup.
+- Future document upload and DBQ parsing through a cautious review workflow.
+
+The guiding principle should be: keep rating logic transparent, keep user data portable, require user review before evidence changes estimates, and clearly separate educational estimation from legal, medical, or official VA claims advice.

@@ -17,6 +17,13 @@ Version 1 criteria were reviewed against current eCFR rating schedule text in Ju
 - Hypertension
 - Sleep apnea
 
+
+## Project roadmap
+
+The project roadmap is to preserve the existing regulatory-audited rating estimator while evolving the app into a future Personal VA Claim Workspace. Planned architecture includes condition templates, mapped and unmapped condition tracking, structured evidence notes, conservative/realistic/optimistic estimate modes, claim-preparation summaries, exports, and future document-ingestion boundaries.
+
+See [ROADMAP.md](ROADMAP.md) for the long-term architecture and version plan.
+
 ## Run locally
 
 Open `index.html` in a browser, or serve the folder with any static file server:
