@@ -60,6 +60,7 @@ Version 5 keeps the application static and browser-only while adding persistence
 - Workspace data remains in the user's browser local storage on the current device and browser profile.
 - The app has no account system, cloud sync, database, server-side storage, document upload, or AI document parsing.
 - Exported JSON files are controlled entirely by the user; anyone with access to the browser profile or exported files may be able to view entered claim information.
+- Do not commit exported workspace JSON files or printed/PDF claim reports; they may contain sensitive claim or health information.
 
 ## Version 6 estimate modes
 
