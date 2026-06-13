@@ -346,11 +346,12 @@ const storageStatus = document.querySelector('#storageStatus');
 const importStatus = document.querySelector('#importStatus');
 const estimateModeSelect = document.querySelector('#estimateModeSelect');
 const scenarioSummaryGrid = document.querySelector('#scenarioSummaryGrid');
+const claimPreparationSummary = document.querySelector('#claimPreparationSummary');
 
-const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v6';
-const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v5'];
+const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v7';
+const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
 const AUTOSAVE_STORAGE_KEY = 'vaDisabilityCalculator.autoSave.v5';
-const WORKSPACE_SCHEMA_VERSION = 6;
+const WORKSPACE_SCHEMA_VERSION = 7;
 
 const estimateModes = {
   conservative: {
@@ -426,9 +427,131 @@ function buildEvidenceCautions(evidence) {
   return { cautions, underSupported: cautions.length > 0, groups };
 }
 
+const evidenceGapCategories = [
+  {
+    id: 'diagnosis',
+    label: 'Diagnosis evidence',
+    fieldIds: ['doctorComments', 'generalEvidenceNotes'],
+    missingLabel: 'Missing diagnosis evidence',
+    suggestion: 'Add the diagnosis source, condition name, date, provider, or relevant medical-record note.'
+  },
+  {
+    id: 'currentSeverity',
+    label: 'Current severity evidence',
+    fieldIds: ['symptomSeverity', 'symptoms', 'dbqFindings'],
+    missingLabel: 'Missing current severity evidence',
+    suggestion: 'Summarize current severity, measurements, exam findings, and what makes symptoms better or worse.'
+  },
+  {
+    id: 'frequencyDuration',
+    label: 'Frequency/duration evidence',
+    fieldIds: ['symptomFrequency', 'flareUps'],
+    missingLabel: 'Missing frequency/duration evidence',
+    suggestion: 'Add frequency, duration, date ranges, flare-up patterns, and recovery time.'
+  },
+  {
+    id: 'treatmentMedication',
+    label: 'Treatment/medication evidence',
+    fieldIds: ['medicationsTreatment'],
+    missingLabel: 'Missing treatment/medication evidence',
+    suggestion: 'List medications, devices, therapy, procedures, response, side effects, or lack of treatment if applicable.'
+  },
+  {
+    id: 'functionalImpact',
+    label: 'Functional-impact evidence',
+    fieldIds: ['functionalImpact'],
+    missingLabel: 'Missing functional-impact evidence',
+    suggestion: 'Describe limits with daily activities such as walking, lifting, sleeping, concentration, self-care, or household tasks.'
+  },
+  {
+    id: 'workImpact',
+    label: 'Work-impact evidence',
+    fieldIds: ['workImpact'],
+    missingLabel: 'Missing work-impact evidence',
+    suggestion: 'Document missed work, accommodations, reduced reliability, safety restrictions, productivity limits, or task changes.'
+  },
+  {
+    id: 'imagingRadiology',
+    label: 'Imaging/radiology evidence',
+    fieldIds: ['radiologyFindings'],
+    missingLabel: 'Missing imaging/radiology evidence',
+    suggestion: 'Add X-ray, MRI, CT, EGD, barium swallow, sleep study, EMG/NCS, or other objective-study findings when relevant.'
+  },
+  {
+    id: 'dbqCpExam',
+    label: 'DBQ/C&P exam findings',
+    fieldIds: ['dbqFindings'],
+    missingLabel: 'Missing DBQ/C&P exam findings',
+    suggestion: 'Summarize DBQ or C&P findings, measurements, examiner observations, and any documented flare-up or repetitive-use estimates.'
+  },
+  {
+    id: 'providerComments',
+    label: 'Doctor/provider comments',
+    fieldIds: ['doctorComments'],
+    missingLabel: 'Missing doctor/provider comments',
+    suggestion: 'Add provider comments, diagnoses, restrictions, treatment assessments, or medical opinions already documented.'
+  }
+];
+
+const imagingRelevantConditionIds = new Set(['neck', 'lumbar', 'shoulder', 'hip', 'knee', 'gerd', 'pesPlanus', 'bunion', 'sleepApnea', 'radiculopathyLeft', 'radiculopathyRight', 'femoralNeuropathyLeft', 'femoralNeuropathyRight']);
+
+const conditionDocumentationSuggestions = {
+  migraines: ['Keep a headache log showing dates, duration, prostrating attacks, triggers, medication use, provider notes, and missed work or reduced productivity.'],
+  neck: ['Capture cervical range-of-motion measurements, painful motion, flare-up limitations, imaging, neurologic/radiculopathy findings, and functional impact.'],
+  lumbar: ['Capture thoracolumbar range-of-motion measurements, flare-up limitations, imaging, radiculopathy findings, and physician-prescribed bed rest if IVDS is selected.'],
+  shoulder: ['Capture flexion/abduction measurements, flare-up limits, instability or weakness observations, imaging, treatment, and functional impact.'],
+  hip: ['Capture hip/thigh range-of-motion measurements, flare-up limits, gait or assistive-device notes, imaging, treatment, and functional impact.'],
+  knee: ['Capture flexion/extension measurements, flare-up limits, instability testing, brace/cane prescriptions, meniscus findings, imaging, and functional impact.'],
+  mentalHealth: ['Summarize occupational and social impairment examples, medication and treatment history, therapy notes, symptom frequency/severity, and work/family impact.'],
+  sleepApnea: ['Document sleep-study results, CPAP or device prescription/use, daytime hypersomnolence, treatment response, and complications.'],
+  hypertension: ['Track multiple blood-pressure readings from different days, medication history, treatment changes, and provider comments.'],
+  gerd: ['Document dysphagia or stricture findings, EGD/barium/CT results, dilation or stent history, PEG/surgery history, treatment, and weight or nutrition impact if applicable.'],
+  pesPlanus: ['Collect podiatry notes, orthotics history, pain on use/manipulation, deformity, swelling, callosities, and surgery history.'],
+  bunion: ['Collect podiatry notes, surgery history, severity descriptions, pain/function limits, orthotics or footwear notes, and imaging if available.'],
+  radiculopathyLeft: ['Document sensory changes, pain distribution, weakness, reflex changes, functional limits, and EMG/NCS findings if available.'],
+  radiculopathyRight: ['Document sensory changes, pain distribution, weakness, reflex changes, functional limits, and EMG/NCS findings if available.'],
+  femoralNeuropathyLeft: ['Document anterior thigh sensory changes, quadriceps weakness, reflex changes, functional limits, and EMG/NCS findings if available.'],
+  femoralNeuropathyRight: ['Document anterior thigh sensory changes, quadriceps weakness, reflex changes, functional limits, and EMG/NCS findings if available.']
+};
+
+function hasEnteredEvidence(evidence, fieldIds) {
+  return fieldIds.some(id => Boolean(evidence.fields[id]));
+}
+
+function buildEvidenceGapAnalysis(item) {
+  const applicableCategories = evidenceGapCategories.filter(category => (
+    category.id !== 'imagingRadiology' || imagingRelevantConditionIds.has(item.id)
+  ));
+  const gaps = applicableCategories.map(category => {
+    const statuses = category.fieldIds.map(id => item.evidence.readiness[id] || 'notEntered');
+    const entered = hasEnteredEvidence(item.evidence, category.fieldIds);
+    const status = statuses.includes('missing') ? 'missing' : (statuses.includes('present') || entered ? 'present' : 'notEntered');
+    return { ...category, status, entered };
+  });
+  const missingOrNotEntered = gaps.filter(gap => gap.status !== 'present');
+  const presentCount = gaps.length - missingOrNotEntered.length;
+  const enteredNoteCount = evidenceFields.filter(field => item.evidence.fields[field.id]).length;
+  const missingCount = gaps.filter(gap => gap.status === 'missing').length;
+
+  let strength = 'Weak / incomplete support';
+  if (missingCount === 0 && presentCount >= Math.ceil(gaps.length * 0.65) && enteredNoteCount >= 3) {
+    strength = 'Stronger support';
+  } else if (presentCount >= Math.ceil(gaps.length * 0.35) || enteredNoteCount >= 2) {
+    strength = 'Needs review';
+  }
+
+  const suggestions = [
+    ...(conditionDocumentationSuggestions[item.id] || []),
+    ...missingOrNotEntered.map(gap => `${gap.missingLabel}: ${gap.suggestion}`)
+  ];
+
+  return { gaps, missingOrNotEntered, strength, suggestions };
+}
+
 function buildModeSpecificResult(item, modeKey) {
   const mode = estimateModes[modeKey] || estimateModes.realistic;
   const evidenceReview = buildEvidenceCautions(item.evidence);
+  const gapAnalysis = buildEvidenceGapAnalysis(item);
   return {
     ...item,
     modeKey,
@@ -436,7 +559,9 @@ function buildModeSpecificResult(item, modeKey) {
     modeDefinition: mode.definition,
     modeRationale: `${mode.rationale} Rating shown remains ${item.rating}% from the selected criteria: ${item.reason}`,
     evidenceCaution: evidenceReview.cautions.length ? evidenceReview.cautions.join(' ') : 'No evidence-readiness caution triggered by the current entries.',
-    underSupported: evidenceReview.underSupported
+    underSupported: evidenceReview.underSupported,
+    evidenceGapAnalysis: gapAnalysis,
+    evidenceStrength: gapAnalysis.strength
   };
 }
 
@@ -703,9 +828,47 @@ function calculateCombined(ratings) {
   return { raw: combined, rounded: roundToNearestTen(combined), sorted, steps };
 }
 
+function renderList(items, emptyText) {
+  return `<ul>${items.length ? items.map(item => `<li>${escapeHtml(item)}</li>`).join('') : `<li>${emptyText}</li>`}</ul>`;
+}
+
+function renderClaimPreparationSummary(estimates) {
+  const byStrength = {
+    'Stronger support': [],
+    'Needs review': [],
+    'Weak / incomplete support': []
+  };
+  const categoryCounts = {};
+
+  estimates.forEach(item => {
+    byStrength[item.evidenceStrength].push(item.name);
+    item.evidenceGapAnalysis.missingOrNotEntered.forEach(gap => {
+      categoryCounts[gap.label] = (categoryCounts[gap.label] || 0) + 1;
+    });
+  });
+
+  const commonMissing = Object.entries(categoryCounts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 6)
+    .map(([label, count]) => `${label} (${count} condition${count === 1 ? '' : 's'})`);
+
+  claimPreparationSummary.innerHTML = `
+    <p class="eyebrow">Version 7</p>
+    <h3>Claim Preparation Summary</h3>
+    <p class="scenarioLimitation">This summary organizes evidence readiness and entered notes. It does not predict an official decision and does not change any rating calculation.</p>
+    <div class="claimSummaryGrid">
+      <div><strong>Conditions with stronger support</strong>${renderList(byStrength['Stronger support'], 'None yet')}</div>
+      <div><strong>Conditions needing review</strong>${renderList(byStrength['Needs review'], 'None yet')}</div>
+      <div><strong>Conditions with weak/incomplete support</strong>${renderList(byStrength['Weak / incomplete support'], 'None yet')}</div>
+      <div><strong>Most common missing evidence categories</strong>${renderList(commonMissing, 'No missing or not-entered categories detected')}</div>
+    </div>
+  `;
+}
+
 function renderResults() {
   const selectedMode = getSelectedEstimateMode();
   const estimates = getAnswers(selectedMode);
+  renderClaimPreparationSummary(estimates);
   individualResults.innerHTML = estimates.map(item => `
     <article class="result card">
       <h3>${item.name}</h3>
@@ -714,6 +877,7 @@ function renderResults() {
       <p><strong>Rating shown for this mode:</strong> ${item.rating}%</p>
       <p><strong>Mode rationale:</strong> ${item.modeRationale}</p>
       <p class="evidenceCaution ${item.underSupported ? 'needsReview' : 'ready'}"><strong>Evidence caution:</strong> ${item.evidenceCaution}</p>
+      <p class="evidenceStrength"><strong>Evidence strength:</strong> ${item.evidenceStrength}</p>
       <p><strong>May be under-supported because evidence fields are missing or not entered:</strong> ${item.underSupported ? 'Yes' : 'No'}</p>
       <p><strong>Why this possible estimate was selected:</strong> ${item.reason}</p>
       <p><strong>Regulatory audit note:</strong> ${item.auditNote}</p>
@@ -738,6 +902,20 @@ function renderResults() {
               <div class="readinessBucket notEntered"><strong>Evidence not yet entered</strong><ul>${groups.notEntered.length ? groups.notEntered.map(field => `<li>${field.label}</li>`).join('') : '<li>All evidence categories reviewed</li>'}</ul></div>
             </div>`;
         })()}
+      </section>
+      <section class="evidenceGapAnalysis" aria-label="Evidence gap analysis for ${item.name}">
+        <h4>Evidence Gap Analysis</h4>
+        <p class="scenarioLimitation">Gaps are based on readiness selections and entered evidence text only; they do not change this condition's rating estimate.</p>
+        <ul class="gapList">
+          ${item.evidenceGapAnalysis.gaps.map(gap => `
+            <li class="${gap.status}">
+              <strong>${gap.status === 'present' ? gap.label : gap.missingLabel}</strong>
+              <span>${gap.status === 'present' ? 'Evidence marked present or notes entered.' : gap.status === 'missing' ? 'Marked as evidence missing.' : 'Evidence not yet entered.'}</span>
+            </li>
+          `).join('')}
+        </ul>
+        <h5>Documentation suggestions</h5>
+        <ul class="suggestionList">${item.evidenceGapAnalysis.suggestions.map(suggestion => `<li>${escapeHtml(suggestion)}</li>`).join('')}</ul>
       </section>
       <p class="citation"><strong>Reference:</strong> ${item.code}</p>
     </article>

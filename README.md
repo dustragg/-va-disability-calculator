@@ -1,10 +1,10 @@
 # VA Disability Rating Estimator
 
-A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 through Version 6 condition-workspace foundations and demonstrates combined-rating "VA math."
+A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 through Version 7 condition-workspace foundations and demonstrates combined-rating "VA math."
 
 ## Regulatory audit status
 
-Version 1 through Version 6 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, and added educational estimate-mode scenario labels that preserve the selected-rating math.
+Version 1 through Version 7 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, added educational estimate-mode scenario labels that preserve the selected-rating math, and added evidence-gap analysis with documentation suggestions that remain separate from rating math.
 
 ## Version 1 conditions
 
@@ -50,6 +50,18 @@ Evidence readiness affects warnings only. Categories marked missing, categories 
 The scenario summary shows conservative, realistic, and optimistic combined estimates. Because full independent scenario logic is not implemented yet, all three combined estimates currently use the same audited selected-rating inputs and disclose that limitation in the UI.
 
 Version 6 save/export/import compatibility includes the selected estimate mode in browser local storage and JSON workspace backups.
+
+## Version 7 evidence gap analysis and documentation suggestions
+
+Version 7 turns the existing evidence-readiness selections and entered evidence notes into per-condition evidence-gap analysis. For each condition, the app checks whether the available fields indicate support for diagnosis, current severity, frequency/duration, treatment or medication, functional impact, work impact, DBQ/C&P exam findings, provider comments, and imaging/radiology when relevant to that condition. Each category is labeled as present, missing, or not yet entered based on the existing readiness dropdowns and whether text has been entered in the related evidence fields.
+
+The app also displays practical documentation suggestions for each condition. Suggestions combine condition-specific prompts, such as headache logs for migraines, range-of-motion and imaging notes for spine and joint conditions, occupational/social examples for mental health, sleep-study and CPAP details for sleep apnea, blood-pressure readings for hypertension, objective stricture or EGD/barium/CT details for GERD, podiatry and orthotics notes for foot conditions, and sensory/reflex/weakness findings for radiculopathy and femoral nerve entries. Missing or not-entered categories add additional targeted suggestions.
+
+Each condition now receives an evidence strength label: **Stronger support**, **Needs review**, or **Weak / incomplete support**. This label is based only on readiness selections and entered notes. It is an organization aid, not a prediction of a VA decision, and it never changes the selected rating, individual estimate, scenario summary, or combined-rating math.
+
+The top-level Claim Preparation Summary groups conditions by evidence strength and lists the most common missing or not-entered evidence categories across the workspace. Evidence-gap outputs are derived at runtime from the saved evidence fields and readiness selections; no separate gap-analysis metadata is saved to local storage or exported JSON. Version 7 keeps compatibility with prior Version 5 and Version 6 workspace imports while writing new browser saves/exports with schema version 7.
+
+Limitations: the tool does not upload documents, parse medical records, identify stale or conflicting evidence, determine service connection, provide legal or medical advice, or decide whether evidence is sufficient for an official VA claim. Users must review their own records and the app's suggestions.
 
 ## Version 5 save, import, and export foundation
 
