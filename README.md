@@ -1,10 +1,10 @@
 # VA Disability Rating Estimator
 
-A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 conditions and demonstrates combined-rating "VA math."
+A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1, Version 2, and Version 3 conditions and demonstrates combined-rating "VA math."
 
 ## Regulatory audit status
 
-Version 1 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, and added in-app audit notes explaining assumptions and evidence limitations.
+Version 1 through Version 3 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, and added in-app audit notes explaining assumptions and evidence limitations.
 
 ## Version 1 conditions
 
@@ -17,6 +17,18 @@ Version 1 criteria were reviewed against current eCFR rating schedule text in Ju
 - Hypertension
 - Sleep apnea
 
+## Version 2 conditions
+
+- Lumbar spine / thoracolumbar limitation
+- Left lower-extremity sciatic radiculopathy
+- Right lower-extremity sciatic radiculopathy
+
+## Version 3 conditions
+
+- Hip conditions, including bursitis and range-of-motion limitations
+- Knee conditions, including flexion, extension, instability, and meniscus conditions
+- Mental health conditions using the General Rating Formula for Mental Disorders
+- Left and right femoral nerve peripheral nerve support
 
 ## Project roadmap
 

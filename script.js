@@ -143,6 +143,136 @@ const conditions = [
     ]}],
     estimate: a => explain(+a.level, 'Selected current sciatic nerve severity level for the right lower extremity. Rating is separate from lumbar limitation when supported and not duplicative.')
   },
+
+  {
+    id: 'hip', name: 'Hip conditions / bursitis and limitation of motion', code: '38 CFR § 4.71a, DC 5019 (bursitis), DCs 5251-5253 (thigh/hip motion)',
+    template: { mapped: true, bodySystem: 'Musculoskeletal', version: 3, lastRegulatoryReview: '2026-06-13' },
+    description: 'Estimates one hip using current hip/thigh limitation-of-motion criteria. Bursitis is generally evaluated based on limitation of motion of the affected part.',
+    auditNote: 'Audit: DC 5019 directs bursitis to be evaluated as degenerative arthritis based on limitation of motion of affected parts. This template uses DC 5251 extension, DC 5252 flexion, and DC 5253 rotation/adduction/abduction criteria and selects the highest single hip-motion estimate entered here. It does not estimate ankylosis, flail joint, femur impairment, hip replacement, or separate left/right hip ratings.',
+    notes: [
+      'Painful motion and functional loss may affect the supported measurement, but the same hip limitation should not be duplicated under multiple musculoskeletal codes.',
+      'Use examination measurements and flare-up/repetitive-use estimates when available.'
+    ],
+    questions: [
+      { id: 'extension', label: 'Is hip extension limited?', options: [
+        ['0', 'No compensable extension limitation selected'],
+        ['10', 'Extension limited to 5°']
+      ]},
+      { id: 'flexion', label: 'How far is thigh flexion limited?', options: [
+        ['0', 'No compensable flexion limitation selected'],
+        ['10', 'Flexion limited to 45°'],
+        ['20', 'Flexion limited to 30°'],
+        ['30', 'Flexion limited to 20°'],
+        ['40', 'Flexion limited to 10°']
+      ]},
+      { id: 'otherMotion', label: 'Are rotation, adduction, or abduction limited?', options: [
+        ['0', 'No compensable rotation/adduction/abduction limitation selected'],
+        ['10', 'Cannot toe-out more than 15° on affected leg, or cannot cross legs'],
+        ['20', 'Abduction motion lost beyond 10°']
+      ]}
+    ],
+    estimate: a => {
+      const extension = +a.extension;
+      const flexion = +a.flexion;
+      const otherMotion = +a.otherMotion;
+      const rating = Math.max(extension, flexion, otherMotion);
+      return explain(rating, `Selected the highest supported hip/thigh motion estimate (extension ${extension}%, flexion ${flexion}%, rotation/adduction/abduction ${otherMotion}%).`);
+    }
+  },
+  {
+    id: 'knee', name: 'Knee conditions / ROM, instability, and meniscus', code: '38 CFR § 4.71a, DCs 5257-5261, 5258-5259',
+    template: { mapped: true, bodySystem: 'Musculoskeletal', version: 3, lastRegulatoryReview: '2026-06-13' },
+    description: 'Estimates one knee by considering flexion, extension, recurrent subluxation/instability or patellar instability, and meniscus conditions, then uses the highest selected knee estimate.',
+    auditNote: 'Audit: Current knee criteria include DC 5257 for recurrent subluxation/instability and patellar instability, DC 5260 flexion, DC 5261 extension, DC 5258 dislocated semilunar cartilage, and DC 5259 symptomatic removal of semilunar cartilage. This simplified template selects the highest single knee estimate to reduce pyramiding risk and does not calculate potentially separate VA ratings for distinct manifestations.',
+    notes: [
+      'VA may sometimes assign separate knee ratings for distinct manifestations, such as limitation of extension, limitation of flexion, instability, or meniscal symptoms, but that requires a careful anti-pyramiding analysis not automated here.',
+      'This template does not estimate ankylosis, tibia/fibula impairment, genu recurvatum, knee replacement, or bilateral factor.'
+    ],
+    questions: [
+      { id: 'flexion', label: 'How far is knee flexion limited?', options: [
+        ['0', 'Flexion better than compensable levels or not selected'],
+        ['10', 'Flexion limited to 45°'],
+        ['20', 'Flexion limited to 30°'],
+        ['30', 'Flexion limited to 15°']
+      ]},
+      { id: 'extension', label: 'How far is knee extension limited?', options: [
+        ['0', 'Extension limited to less than 10° or not selected'],
+        ['10', 'Extension limited to 10°'],
+        ['20', 'Extension limited to 15°'],
+        ['30', 'Extension limited to 20°'],
+        ['40', 'Extension limited to 30°'],
+        ['50', 'Extension limited to 45°']
+      ]},
+      { id: 'instability', label: 'Which instability or patellar-instability pattern is documented?', options: [
+        ['0', 'No compensable instability pattern selected'],
+        ['10', 'Sprain/incomplete ligament tear/repaired complete tear with persistent instability and prescribed brace, cane, or walker; or diagnosed patellar instability without qualifying repair/prescription pattern'],
+        ['20', 'Persistent instability after unrepaired/failed complete ligament tear with prescribed assistive device or brace; or patellar instability after surgical repair requiring prescribed brace/cane/walker'],
+        ['30', 'Persistent instability after unrepaired/failed complete ligament tear requiring both prescribed assistive device and brace; or patellar instability after surgical repair requiring prescribed brace plus cane/walker']
+      ]},
+      { id: 'meniscus', label: 'Which meniscus / semilunar cartilage finding applies?', options: [
+        ['0', 'No compensable meniscus condition selected'],
+        ['10', 'Symptomatic removal of semilunar cartilage'],
+        ['20', 'Dislocated semilunar cartilage with frequent episodes of locking, pain, and effusion into the joint']
+      ]}
+    ],
+    estimate: a => {
+      const flexion = +a.flexion;
+      const extension = +a.extension;
+      const instability = +a.instability;
+      const meniscus = +a.meniscus;
+      const rating = Math.max(flexion, extension, instability, meniscus);
+      return explain(rating, `Selected the highest supported simplified knee estimate (flexion ${flexion}%, extension ${extension}%, instability ${instability}%, meniscus ${meniscus}%). Separate ratings require adjudicative review.`);
+    }
+  },
+  {
+    id: 'mentalHealth', name: 'Mental health conditions', code: '38 CFR § 4.130, General Rating Formula for Mental Disorders (DCs 9201-9440)',
+    template: { mapped: true, bodySystem: 'Mental disorders', version: 3, lastRegulatoryReview: '2026-06-13' },
+    description: 'Uses the current General Rating Formula for Mental Disorders by occupational and social impairment level and representative symptoms.',
+    auditNote: 'Audit: Current mental-disorder ratings under DCs 9201-9440 generally use the General Rating Formula for Mental Disorders. This estimator uses the impairment levels and examples in § 4.130, but actual ratings require review of all evidence, frequency, severity, duration, remissions, and occupational/social functioning rather than a symptom checklist alone.',
+    notes: [
+      'Do not combine multiple mental-health diagnoses separately when the same psychiatric manifestations are being evaluated under one General Rating Formula estimate.',
+      'Eating disorders use a different formula and are not estimated by this template.'
+    ],
+    questions: [{ id: 'level', label: 'Which occupational and social impairment level best fits the documented mental-health evidence?', options: [
+      ['0', 'A mental condition is formally diagnosed, but symptoms are not severe enough to interfere with occupational/social functioning or require continuous medication'],
+      ['10', 'Mild or transient symptoms decreasing work efficiency only during significant stress, or symptoms controlled by continuous medication'],
+      ['30', 'Occasional decrease in work efficiency and intermittent inability to perform occupational tasks, generally functioning satisfactorily'],
+      ['50', 'Reduced reliability and productivity'],
+      ['70', 'Deficiencies in most areas such as work, school, family relations, judgment, thinking, or mood'],
+      ['100', 'Total occupational and social impairment']
+    ]}],
+    estimate: a => explain(+a.level, 'Selected the current General Rating Formula mental-health impairment level. Representative symptoms should support the selected occupational and social impairment level.')
+  },
+  {
+    id: 'femoralNeuropathyLeft', name: 'Left lower extremity femoral nerve', code: '38 CFR § 4.124a, DC 8526 (anterior crural/femoral nerve), DC 8626, DC 8726',
+    template: { mapped: true, bodySystem: 'Neurologic', version: 3, lastRegulatoryReview: '2026-06-13' },
+    description: 'Adds left femoral-nerve peripheral nerve support where evidence identifies anterior crural/femoral nerve involvement distinct from sciatic radiculopathy.',
+    auditNote: 'Audit: DC 8526 provides 10% mild, 20% moderate, 30% severe incomplete paralysis, and 40% complete paralysis of the quadriceps extensor muscles. Neuritis and neuralgia use DCs 8626 and 8726. This template assumes the femoral distribution is documented and not duplicative of sciatic symptoms.',
+    notes: ['Pyramiding caution: do not duplicate the same numbness, pain, weakness, or functional loss under sciatic and femoral nerve templates unless evidence supports distinct nerve distributions.'],
+    questions: [{ id: 'level', label: 'Which left femoral nerve finding best fits?', options: [
+      ['0', 'No compensable left femoral nerve impairment selected'],
+      ['10', 'Mild incomplete paralysis'],
+      ['20', 'Moderate incomplete paralysis'],
+      ['30', 'Severe incomplete paralysis'],
+      ['40', 'Complete paralysis of quadriceps extensor muscles']
+    ]}],
+    estimate: a => explain(+a.level, 'Selected current femoral nerve severity level for the left lower extremity, separate only when evidence supports distinct manifestations.')
+  },
+  {
+    id: 'femoralNeuropathyRight', name: 'Right lower extremity femoral nerve', code: '38 CFR § 4.124a, DC 8526 (anterior crural/femoral nerve), DC 8626, DC 8726',
+    template: { mapped: true, bodySystem: 'Neurologic', version: 3, lastRegulatoryReview: '2026-06-13' },
+    description: 'Adds right femoral-nerve peripheral nerve support where evidence identifies anterior crural/femoral nerve involvement distinct from sciatic radiculopathy.',
+    auditNote: 'Audit: DC 8526 provides 10% mild, 20% moderate, 30% severe incomplete paralysis, and 40% complete paralysis of the quadriceps extensor muscles. Neuritis and neuralgia use DCs 8626 and 8726. This template assumes the femoral distribution is documented and not duplicative of sciatic symptoms.',
+    notes: ['Pyramiding caution: do not duplicate the same numbness, pain, weakness, or functional loss under sciatic and femoral nerve templates unless evidence supports distinct nerve distributions.'],
+    questions: [{ id: 'level', label: 'Which right femoral nerve finding best fits?', options: [
+      ['0', 'No compensable right femoral nerve impairment selected'],
+      ['10', 'Mild incomplete paralysis'],
+      ['20', 'Moderate incomplete paralysis'],
+      ['30', 'Severe incomplete paralysis'],
+      ['40', 'Complete paralysis of quadriceps extensor muscles']
+    ]}],
+    estimate: a => explain(+a.level, 'Selected current femoral nerve severity level for the right lower extremity, separate only when evidence supports distinct manifestations.')
+  },
   {
     id: 'gerd', name: 'GERD', code: '38 CFR § 4.114, DC 7206',
     description: 'Uses the current GERD diagnostic code, which centers on documented esophageal strictures, dysphagia, dilation/stent treatment, nutritional impact, and PEG/surgical correction.',
