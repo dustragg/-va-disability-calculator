@@ -1,0 +1,7 @@
+{
+  "scripts": {
+    "test": "node --check script.js",
+    "start": "python3 -m http.server 4173"
+  },
+  "devDependencies": {}
+}

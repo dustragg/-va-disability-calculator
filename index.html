@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VA Disability Rating Estimator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Educational tool</p>
+      <h1>VA Disability Rating Estimator</h1>
+      <p class="lede">Answer symptom-based questions for selected conditions, review possible individual rating estimates, and see VA math combined-rating steps.</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="notice" aria-label="Disclaimer">
+      <strong>Disclaimer:</strong> This is an educational estimate only, not legal, medical, or VA claims advice. Results are possible estimates and likely ranges based on simplified rating criteria. Actual VA decisions depend on medical evidence, exams, service connection, effective dates, pyramiding rules, analogous ratings, and adjudicator findings.
+    </section>
+
+    <section class="card intro">
+      <h2>How to use this estimator</h2>
+      <ol>
+        <li>Select answers that best match the evidence for each condition.</li>
+        <li>Leave a condition at “not claimed / no compensable symptoms” if it should not be included.</li>
+        <li>Review each rationale and the combined-rating calculation. Bilateral factor and special monthly compensation are not included in this version.</li>
+      </ol>
+    </section>
+
+    <form id="ratingForm" class="conditions" novalidate></form>
+
+    <section class="results" aria-live="polite">
+      <div class="resultsHeader">
+        <div>
+          <p class="eyebrow">Possible estimate</p>
+          <h2>Results</h2>
+        </div>
+        <button id="resetBtn" type="button" class="secondary">Reset answers</button>
+      </div>
+      <div id="individualResults" class="resultGrid"></div>
+      <div class="combined card">
+        <h3>Combined VA rating estimate</h3>
+        <p id="combinedSummary" class="combinedNumber">0%</p>
+        <div id="combinedSteps" class="steps"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Criteria references include 38 CFR Part 4 diagnostic codes/sections shown with each result and 38 CFR § 4.25 for combined ratings.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
