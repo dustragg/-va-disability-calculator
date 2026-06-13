@@ -334,7 +334,36 @@ const evidenceReadinessOptions = [
   ['missing', 'Evidence missing']
 ];
 
+const unmappedConditionFields = [
+  { id: 'name', label: 'Condition name', type: 'text', prompt: 'Example: chronic sinus symptoms, wrist pain, skin rash' },
+  { id: 'bodySystem', label: 'Body system', type: 'text', prompt: 'Example: Respiratory, Musculoskeletal, Skin, Neurologic' },
+  { id: 'claimedTheory', label: 'Claimed theory', type: 'select', options: [
+    ['direct', 'Direct service connection'],
+    ['secondary', 'Secondary service connection'],
+    ['increase', 'Increase for existing service-connected condition'],
+    ['presumptive', 'Presumptive service connection'],
+    ['aggravation', 'Aggravation'],
+    ['unknown', 'Not sure yet']
+  ]},
+  { id: 'notes', label: 'Notes', type: 'textarea', prompt: 'High-level claim notes, timeline, or questions to resolve.' },
+  { id: 'symptoms', label: 'Symptoms', type: 'textarea', prompt: 'Main symptoms and observable effects.' },
+  { id: 'severity', label: 'Severity', type: 'textarea', prompt: 'Severity level, duration, and what makes symptoms better or worse.' },
+  { id: 'frequency', label: 'Frequency', type: 'textarea', prompt: 'How often symptoms occur, duration, flare patterns, and date ranges.' },
+  { id: 'medicationsTreatment', label: 'Medications/treatment', type: 'textarea', prompt: 'Medication names, therapy, devices, procedures, and response.' },
+  { id: 'functionalImpact', label: 'Functional impact', type: 'textarea', prompt: 'Effects on walking, lifting, sleep, concentration, daily tasks, or self-care.' },
+  { id: 'workImpact', label: 'Work impact', type: 'textarea', prompt: 'Missed work, accommodations, reduced reliability, safety limits, or task limits.' },
+  { id: 'doctorComments', label: 'Doctor comments', type: 'textarea', prompt: 'Provider notes, diagnoses, restrictions, or medical opinions.' },
+  { id: 'radiologyFindings', label: 'Imaging/radiology findings', type: 'textarea', prompt: 'X-ray, MRI, CT, ultrasound, sleep study, EMG/NCS, or other objective findings.' },
+  { id: 'dbqFindings', label: 'DBQ findings', type: 'textarea', prompt: 'Relevant DBQ or C&P exam findings and measurements.' },
+  { id: 'generalEvidenceNotes', label: 'General evidence notes', type: 'textarea', prompt: 'Other lay, medical, or administrative evidence notes.' }
+];
+
+let unmappedConditions = [];
+
 const form = document.querySelector('#ratingForm');
+const unmappedConditionForm = document.querySelector('#unmappedConditionForm');
+const unmappedConditionList = document.querySelector('#unmappedConditionList');
+const addUnmappedConditionBtn = document.querySelector('#addUnmappedConditionBtn');
 const individualResults = document.querySelector('#individualResults');
 const combinedSummary = document.querySelector('#combinedSummary');
 const combinedSteps = document.querySelector('#combinedSteps');
@@ -348,10 +377,10 @@ const estimateModeSelect = document.querySelector('#estimateModeSelect');
 const scenarioSummaryGrid = document.querySelector('#scenarioSummaryGrid');
 const claimPreparationSummary = document.querySelector('#claimPreparationSummary');
 
-const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v7';
-const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
+const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v8';
+const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v7', 'vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
 const AUTOSAVE_STORAGE_KEY = 'vaDisabilityCalculator.autoSave.v5';
-const WORKSPACE_SCHEMA_VERSION = 7;
+const WORKSPACE_SCHEMA_VERSION = 8;
 
 const estimateModes = {
   conservative: {
@@ -565,6 +594,83 @@ function buildModeSpecificResult(item, modeKey) {
   };
 }
 
+
+function normalizeUnmappedCondition(record = {}) {
+  const normalized = Object.fromEntries(unmappedConditionFields.map(field => [field.id, normalizeEvidenceValue(record[field.id])]));
+  normalized.id = normalizeEvidenceValue(record.id) || `unmapped-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  normalized.trackingOnly = true;
+  normalized.ratingLogic = 'none';
+  return normalized;
+}
+
+function getUnmappedFormData() {
+  const data = new FormData(unmappedConditionForm);
+  return Object.fromEntries(unmappedConditionFields.map(field => [field.id, normalizeEvidenceValue(data.get(`unmapped.${field.id}`))]));
+}
+
+function renderUnmappedConditionForm() {
+  unmappedConditionForm.innerHTML = unmappedConditionFields.map(field => {
+    const name = `unmapped.${field.id}`;
+    if (field.type === 'select') {
+      return `<label for="unmapped-${field.id}">${field.label}<select id="unmapped-${field.id}" name="${name}">${field.options.map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}</select></label>`;
+    }
+    if (field.type === 'text') {
+      return `<label for="unmapped-${field.id}">${field.label}<input id="unmapped-${field.id}" name="${name}" type="text" placeholder="${field.prompt}"></label>`;
+    }
+    return `<label for="unmapped-${field.id}">${field.label}<textarea id="unmapped-${field.id}" name="${name}" rows="3" placeholder="${field.prompt}"></textarea></label>`;
+  }).join('');
+}
+
+function addUnmappedCondition() {
+  const record = normalizeUnmappedCondition(getUnmappedFormData());
+  if (!record.name) {
+    importStatus.textContent = 'Enter a custom condition name before adding a tracking-only condition.';
+    return;
+  }
+  unmappedConditions.push(record);
+  unmappedConditionForm.reset();
+  importStatus.textContent = 'Tracking-only condition added. It will not create a rating or affect combined-rating math.';
+  renderResults();
+  maybeAutoSave();
+}
+
+function removeUnmappedCondition(id) {
+  unmappedConditions = unmappedConditions.filter(condition => condition.id !== id);
+  renderResults();
+  maybeAutoSave();
+}
+
+function getClaimedTheoryLabel(value) {
+  const field = unmappedConditionFields.find(item => item.id === 'claimedTheory');
+  return field?.options.find(([optionValue]) => optionValue === value)?.[1] || value || 'Not entered';
+}
+
+function renderUnmappedConditionList() {
+  if (!unmappedConditions.length) {
+    unmappedConditionList.innerHTML = '<p class="emptyEvidence">No custom unmapped conditions added yet.</p>';
+    return;
+  }
+  unmappedConditionList.innerHTML = unmappedConditions.map(condition => `
+    <article class="unmappedConditionCard">
+      <div class="conditionHeader">
+        <div>
+          <h3>${escapeHtml(condition.name)}</h3>
+          <p><strong>Tracking only — no rating logic yet.</strong> This condition will not create an individual rating and is excluded from VA combined-rating math.</p>
+        </div>
+        <span class="badge trackingBadge">No rating logic</span>
+      </div>
+      <dl class="unmappedDetails">
+        <div><dt>Body system</dt><dd>${condition.bodySystem ? escapeHtml(condition.bodySystem) : '<span class="emptyEvidence">Not entered</span>'}</dd></div>
+        <div><dt>Claimed theory</dt><dd>${escapeHtml(getClaimedTheoryLabel(condition.claimedTheory))}</dd></div>
+        ${unmappedConditionFields.filter(field => !['name', 'bodySystem', 'claimedTheory'].includes(field.id)).map(field => `
+          <div><dt>${field.label}</dt><dd>${condition[field.id] ? escapeHtml(condition[field.id]) : '<span class="emptyEvidence">Not entered</span>'}</dd></div>
+        `).join('')}
+      </dl>
+      <button type="button" class="danger removeUnmappedBtn" data-unmapped-id="${escapeHtml(condition.id)}">Remove tracking-only condition</button>
+    </article>
+  `).join('');
+}
+
 function renderForm() {
   form.innerHTML = conditions.map(condition => `
     <fieldset class="condition card">
@@ -624,7 +730,7 @@ function getCurrentFormData() {
     evidence[condition.id] = getConditionEvidence(condition, data);
   });
 
-  return { ratings, evidence, estimateMode: getSelectedEstimateMode() };
+  return { ratings, evidence, unmappedConditions: unmappedConditions.map(normalizeUnmappedCondition), estimateMode: getSelectedEstimateMode() };
 }
 
 function getWorkspacePayload() {
@@ -636,7 +742,8 @@ function getWorkspacePayload() {
       appName: 'VA Disability Rating Estimator',
       conditionIds: conditions.map(condition => condition.id),
       evidenceFieldIds: evidenceFields.map(field => field.id),
-      estimateModeIds: Object.keys(estimateModes)
+      estimateModeIds: Object.keys(estimateModes),
+      unmappedConditionFieldIds: unmappedConditionFields.map(field => field.id)
     },
     workspace: getCurrentFormData()
   };
@@ -678,6 +785,9 @@ function applyWorkspacePayload(payload) {
   if (!validation.valid) return validation;
 
   applyEstimateModeFromPayload(payload);
+  unmappedConditions = Array.isArray(payload.workspace.unmappedConditions)
+    ? payload.workspace.unmappedConditions.map(normalizeUnmappedCondition).filter(condition => condition.name)
+    : [];
 
   conditions.forEach(condition => {
     const conditionRatings = payload.workspace.ratings[condition.id] || {};
@@ -803,6 +913,8 @@ function resetWorkspace() {
   const confirmed = window.confirm('Clear all rating selections, evidence fields, readiness selections, and saved browser data for this workspace?');
   if (!confirmed) return;
   form.reset();
+  unmappedConditionForm.reset();
+  unmappedConditions = [];
   localStorage.removeItem(WORKSPACE_STORAGE_KEY);
   LEGACY_WORKSPACE_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
   updateStorageStatus();
@@ -839,6 +951,7 @@ function renderClaimPreparationSummary(estimates) {
     'Weak / incomplete support': []
   };
   const categoryCounts = {};
+  const trackingOnlyNames = unmappedConditions.map(condition => `${condition.name} — Tracking only, no rating logic yet`);
 
   estimates.forEach(item => {
     byStrength[item.evidenceStrength].push(item.name);
@@ -853,7 +966,7 @@ function renderClaimPreparationSummary(estimates) {
     .map(([label, count]) => `${label} (${count} condition${count === 1 ? '' : 's'})`);
 
   claimPreparationSummary.innerHTML = `
-    <p class="eyebrow">Version 7</p>
+    <p class="eyebrow">Version 8</p>
     <h3>Claim Preparation Summary</h3>
     <p class="scenarioLimitation">This summary organizes evidence readiness and entered notes. It does not predict an official decision and does not change any rating calculation.</p>
     <div class="claimSummaryGrid">
@@ -861,6 +974,7 @@ function renderClaimPreparationSummary(estimates) {
       <div><strong>Conditions needing review</strong>${renderList(byStrength['Needs review'], 'None yet')}</div>
       <div><strong>Conditions with weak/incomplete support</strong>${renderList(byStrength['Weak / incomplete support'], 'None yet')}</div>
       <div><strong>Most common missing evidence categories</strong>${renderList(commonMissing, 'No missing or not-entered categories detected')}</div>
+      <div><strong>Unmapped tracking-only conditions</strong>${renderList(trackingOnlyNames, 'None yet')}</div>
     </div>
   `;
 }
@@ -869,6 +983,7 @@ function renderResults() {
   const selectedMode = getSelectedEstimateMode();
   const estimates = getAnswers(selectedMode);
   renderClaimPreparationSummary(estimates);
+  renderUnmappedConditionList();
   individualResults.innerHTML = estimates.map(item => `
     <article class="result card">
       <h3>${item.name}</h3>
@@ -940,6 +1055,7 @@ function renderResults() {
   `).join('') + `<div class="step"><strong>Rounding:</strong> Raw combined ${combined.raw.toFixed(1)}% rounds to ${combined.rounded}% under 38 CFR § 4.25.</div>` : '<div class="step">No compensable individual estimates selected. Combined estimate is 0%.</div>';
 }
 
+renderUnmappedConditionForm();
 renderForm();
 loadAutoSavePreference();
 loadSavedWorkspace();
@@ -947,6 +1063,11 @@ renderResults();
 estimateModeSelect.addEventListener('change', () => { renderResults(); maybeAutoSave(); });
 form.addEventListener('change', () => { renderResults(); maybeAutoSave(); });
 form.addEventListener('input', () => { renderResults(); maybeAutoSave(); });
+addUnmappedConditionBtn.addEventListener('click', addUnmappedCondition);
+unmappedConditionList.addEventListener('click', event => {
+  const button = event.target.closest('.removeUnmappedBtn');
+  if (button) removeUnmappedCondition(button.dataset.unmappedId);
+});
 saveWorkspaceBtn.addEventListener('click', () => saveWorkspace({ manual: true }));
 exportWorkspaceBtn.addEventListener('click', exportWorkspace);
 importWorkspaceInput.addEventListener('change', event => importWorkspace(event.target.files[0]));

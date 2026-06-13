@@ -1,10 +1,10 @@
 # VA Disability Rating Estimator
 
-A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 through Version 7 condition-workspace foundations and demonstrates combined-rating "VA math."
+A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 through Version 8 condition-workspace foundations and demonstrates combined-rating "VA math."
 
 ## Regulatory audit status
 
-Version 1 through Version 7 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, added educational estimate-mode scenario labels that preserve the selected-rating math, and added evidence-gap analysis with documentation suggestions that remain separate from rating math.
+Version 1 through Version 8 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, added educational estimate-mode scenario labels that preserve the selected-rating math, added evidence-gap analysis with documentation suggestions that remain separate from rating math, and added custom unmapped condition tracking records that never create ratings or affect combined-rating math.
 
 ## Version 1 conditions
 
@@ -62,6 +62,12 @@ Each condition now receives an evidence strength label: **Stronger support**, **
 The top-level Claim Preparation Summary groups conditions by evidence strength and lists the most common missing or not-entered evidence categories across the workspace. Evidence-gap outputs are derived at runtime from the saved evidence fields and readiness selections; no separate gap-analysis metadata is saved to local storage or exported JSON. Version 7 keeps compatibility with prior Version 5 and Version 6 workspace imports while writing new browser saves/exports with schema version 7.
 
 Limitations: the tool does not upload documents, parse medical records, identify stale or conflicting evidence, determine service connection, provide legal or medical advice, or decide whether evidence is sufficient for an official VA claim. Users must review their own records and the app's suggestions.
+
+## Version 8 unmapped condition tracking
+
+Version 8 lets users add custom unmapped conditions to the Personal VA Claim Workspace when the app does not yet include rating logic for that condition. Each custom record includes condition name, body system, claimed theory, notes, symptoms, severity, frequency, medications/treatment, functional impact, work impact, doctor comments, imaging/radiology findings, DBQ findings, and general evidence notes.
+
+Unmapped records are clearly labeled **Tracking only — no rating logic yet**. They appear in the custom condition list and the Claim Preparation Summary, save to browser local storage, export to JSON, import from JSON, and clear during reset. They are excluded from individual rating results, scenario summaries, and VA combined-rating math, and the app does not create ratings for them. Version 8 keeps compatibility with prior Version 5, Version 6, and Version 7 workspace imports while writing new saves/exports with schema version 8.
 
 ## Version 5 save, import, and export foundation
 

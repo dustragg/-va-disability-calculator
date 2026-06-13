@@ -32,9 +32,9 @@
 
     <section class="card workspaceControls" aria-labelledby="workspace-controls-heading">
       <div>
-        <p class="eyebrow">Version 7</p>
+        <p class="eyebrow">Version 8</p>
         <h2 id="workspace-controls-heading">Personal VA Claim Workspace</h2>
-        <p>Save this browser workspace, choose an educational estimate mode, export a backup JSON file, or import a prior export while keeping rating criteria, evidence tracking, and evidence-gap suggestions separate.</p>
+        <p>Save this browser workspace, choose an educational estimate mode, add tracking-only unmapped conditions, export a backup JSON file, or import a prior export while keeping rating criteria, evidence tracking, and evidence-gap suggestions separate.</p>
       </div>
 
       <div class="estimateModeControls" aria-labelledby="estimate-mode-heading">
@@ -75,6 +75,19 @@
         <li>Exported JSON files are downloaded to your device and are controlled entirely by you.</li>
         <li>Anyone with access to this browser profile or exported files may be able to view the information you enter.</li>
       </ul>
+    </section>
+
+    <section class="card unmappedConditionBuilder" aria-labelledby="unmapped-condition-heading">
+      <div class="sectionHeading">
+        <p class="eyebrow trackingEyebrow">Tracking only</p>
+        <h2 id="unmapped-condition-heading">Add custom unmapped condition</h2>
+        <p>Create a claim-workspace record for a condition that is not mapped to rating criteria yet. These entries are clearly marked “Tracking only — no rating logic yet,” are included in save/load and JSON export/import, and are excluded from VA combined-rating math.</p>
+      </div>
+      <form id="unmappedConditionForm" class="unmappedConditionForm" novalidate></form>
+      <div class="unmappedActions">
+        <button id="addUnmappedConditionBtn" type="button">Add tracking-only condition</button>
+      </div>
+      <div id="unmappedConditionList" class="unmappedConditionList" aria-live="polite"></div>
     </section>
 
     <form id="ratingForm" class="conditions" novalidate></form>
