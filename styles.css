@@ -198,3 +198,48 @@ input[type="text"]::placeholder { color: #8795aa; }
 .planningSummary dt { font-weight: 800; }
 .planningSummary dd { margin: .2rem 0 0; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 680px) { .planningGrid, .planningSummary dl { grid-template-columns: 1fr; } }
+.reportControls { padding: 1.25rem; margin: 1rem 0; border-left: 6px solid #2563eb; }
+.reportControls p:not(.eyebrow) { color: var(--muted); margin-top: 0; }
+.fullDetailsToggle { display: flex; grid-template-columns: auto 1fr; align-items: start; gap: .55rem; font-weight: 800; margin: 1rem 0; }
+.fullDetailsToggle input { inline-size: 1.1rem; block-size: 1.1rem; margin-top: .2rem; }
+.fullDetailsToggle .help { display: block; grid-column: 2; }
+.reportActions { display: flex; flex-wrap: wrap; gap: .65rem; }
+.claimReport { padding: 1.25rem; margin: 1rem 0; }
+.reportHeader { display: flex; justify-content: space-between; gap: 1rem; align-items: start; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem; }
+.reportRating { background: #eef6ff; border: 1px solid var(--border); border-radius: 16px; padding: .85rem; margin: 0; min-width: 190px; text-align: center; font-weight: 800; color: var(--brand-dark); }
+.reportRating span { display: block; color: var(--brand); font-size: 3rem; font-weight: 950; line-height: 1; }
+.reportSection { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem; }
+.reportSection h3 { color: var(--brand-dark); }
+.reportConditionList { display: grid; gap: 1rem; }
+.reportCondition { background: #f8fbff; border: 1px solid var(--border); border-radius: 14px; padding: 1rem; break-inside: avoid; }
+.reportCondition h4 { display: flex; justify-content: space-between; gap: 1rem; margin: 0 0 .5rem; }
+.reportCondition h4 span { color: var(--brand); }
+.reportDetails { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .55rem; margin: .65rem 0; }
+.reportDetails div { background: white; border: 1px solid var(--border); border-radius: 12px; padding: .65rem; }
+.reportDetails dt { font-weight: 800; }
+.reportDetails dd { margin: .2rem 0 0; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.reportTwoColumn { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+.trackingOnlyReport { border-left: 5px solid #f97316; }
+@media (max-width: 680px) {
+  .reportHeader, .reportCondition h4 { display: block; }
+  .reportRating { margin-top: 1rem; }
+  .reportActions { display: grid; }
+  .reportActions button { width: 100%; }
+}
+@media print {
+  :root { --bg: #fff; --card: #fff; --ink: #111827; --muted: #374151; --border: #cbd5e1; --shadow: none; }
+  @page { margin: .55in; }
+  body { background: #fff; color: #111827; font-size: 11pt; line-height: 1.35; }
+  .hero, .notice, .intro, .workspaceControls, .privacyNotice, .unmappedConditionBuilder, .conditions, .results, footer, .reportControls, .noPrint { display: none !important; }
+  main { max-width: none; padding: 0; }
+  .card, .claimReport, .reportCondition, .step, .claimSummaryGrid > div, .reportDetails div, .gapList li, .suggestionList li { box-shadow: none; border-color: #cbd5e1; }
+  .claimReport { display: block !important; border: 0; padding: 0; margin: 0; }
+  .eyebrow { color: #1f2937; }
+  .reportHeader { align-items: start; }
+  .reportRating { border: 1px solid #94a3b8; }
+  .reportRating span { color: #111827; }
+  .reportSection, .reportCondition { break-inside: avoid; page-break-inside: avoid; }
+  .reportCondition { margin-bottom: .75rem; }
+  details summary { font-weight: 800; }
+  a { color: #111827; text-decoration: none; }
+}

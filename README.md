@@ -1,10 +1,10 @@
 # VA Disability Rating Estimator
 
-A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 through Version 8 condition-workspace foundations and demonstrates combined-rating "VA math."
+A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 through Version 10 condition-workspace foundations and demonstrates combined-rating "VA math."
 
 ## Regulatory audit status
 
-Version 1 through Version 8 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, added educational estimate-mode scenario labels that preserve the selected-rating math, added evidence-gap analysis with documentation suggestions that remain separate from rating math, and added custom unmapped condition tracking records that never create ratings or affect combined-rating math.
+Version 1 through Version 8 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, added educational estimate-mode scenario labels that preserve the selected-rating math, added evidence-gap analysis with documentation suggestions that remain separate from rating math, and added custom unmapped condition tracking records that never create ratings or affect combined-rating math, and added a printable claim-preparation report for organizing the current workspace.
 
 ## Version 1 conditions
 
@@ -62,6 +62,12 @@ Each condition now receives an evidence strength label: **Stronger support**, **
 The top-level Claim Preparation Summary groups conditions by evidence strength and lists the most common missing or not-entered evidence categories across the workspace. Evidence-gap outputs are derived at runtime from the saved evidence fields and readiness selections; no separate gap-analysis metadata is saved to local storage or exported JSON. Version 7 keeps compatibility with prior Version 5 and Version 6 workspace imports while writing new browser saves/exports with schema version 7.
 
 Limitations: the tool does not upload documents, parse medical records, identify stale or conflicting evidence, determine service connection, provide legal or medical advice, or decide whether evidence is sufficient for an official VA claim. Users must review their own records and the app's suggestions.
+
+## Version 10 printable claim report
+
+Version 10 adds a **Generate Claim Report** section that creates a printable claim-preparation report from the current browser workspace without changing any rating criteria, condition logic, evidence-gap logic, or combined-rating math. The report includes the Claim Planning Dashboard summary, estimated combined rating, individual mapped conditions with selected ratings, evidence strength labels, evidence gaps, documentation suggestions, planning fields, unmapped tracking-only conditions, and privacy/disclaimer language.
+
+The report keeps evidence notes concise by default so printed/PDF copies remain readable. Users can optionally enable full evidence-note details before regenerating or printing the report. The **Print Report** button uses the browser print dialog, and print-specific CSS hides editing controls while formatting the report for paper or PDF. Local save, JSON export/import, unmapped tracking, and all existing calculations are preserved.
 
 ## Version 9 condition status and priority tracking
 

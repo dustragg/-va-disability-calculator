@@ -405,11 +405,15 @@ const estimateModeSelect = document.querySelector('#estimateModeSelect');
 const scenarioSummaryGrid = document.querySelector('#scenarioSummaryGrid');
 const claimPreparationSummary = document.querySelector('#claimPreparationSummary');
 const claimPlanningDashboard = document.querySelector('#claimPlanningDashboard');
+const claimReport = document.querySelector('#claimReport');
+const generateReportBtn = document.querySelector('#generateReportBtn');
+const printReportBtn = document.querySelector('#printReportBtn');
+const includeFullEvidenceToggle = document.querySelector('#includeFullEvidenceToggle');
 
-const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v9';
-const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v8', 'vaDisabilityCalculator.workspace.v7', 'vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
+const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v10';
+const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v9', 'vaDisabilityCalculator.workspace.v8', 'vaDisabilityCalculator.workspace.v7', 'vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
 const AUTOSAVE_STORAGE_KEY = 'vaDisabilityCalculator.autoSave.v5';
-const WORKSPACE_SCHEMA_VERSION = 9;
+const WORKSPACE_SCHEMA_VERSION = 10;
 
 const estimateModes = {
   conservative: {
@@ -1055,7 +1059,7 @@ function renderClaimPlanningDashboard(estimates) {
   const unmappedTracking = unmappedConditions.map(condition => formatPlanningItem(condition.name, condition));
 
   claimPlanningDashboard.innerHTML = `
-    <p class="eyebrow">Version 9</p>
+    <p class="eyebrow">Version 10</p>
     <h3>Claim Planning Dashboard</h3>
     <p class="scenarioLimitation">This dashboard groups mapped and unmapped conditions by user-entered planning status. It does not change ratings or determine claim strategy.</p>
     <div class="claimSummaryGrid">
@@ -1097,7 +1101,7 @@ function renderClaimPreparationSummary(estimates) {
     .map(([label, count]) => `${label} (${count} condition${count === 1 ? '' : 's'})`);
 
   claimPreparationSummary.innerHTML = `
-    <p class="eyebrow">Version 9</p>
+    <p class="eyebrow">Version 10</p>
     <h3>Claim Preparation Summary</h3>
     <p class="scenarioLimitation">This summary organizes evidence readiness and entered notes. It does not predict an official decision and does not change any rating calculation.</p>
     <div class="claimSummaryGrid">
@@ -1113,12 +1117,116 @@ function renderClaimPreparationSummary(estimates) {
   `;
 }
 
+function getConciseEvidenceSummary(item) {
+  const highlightedFields = ['symptoms', 'symptomFrequency', 'symptomSeverity', 'functionalImpact', 'workImpact', 'doctorComments', 'dbqFindings'];
+  const summaries = highlightedFields
+    .map(id => {
+      const field = evidenceFields.find(entry => entry.id === id);
+      const value = item.evidence.fields[id];
+      if (!field || !value) return null;
+      const concise = value.length > 180 ? `${value.slice(0, 177).trim()}...` : value;
+      return `${field.label}: ${concise}`;
+    })
+    .filter(Boolean);
+  return summaries.length ? summaries : ['No concise evidence notes entered for highlighted categories.'];
+}
+
+function renderPlanningReportList(planning) {
+  return `<dl class="reportDetails">${planningFields.map(field => `
+    <div><dt>${field.label}</dt><dd>${field.type === 'select' ? escapeHtml(getPlanningLabel(field.id, planning[field.id])) : (planning[field.id] ? escapeHtml(planning[field.id]) : '<span class="emptyEvidence">Not entered</span>')}</dd></div>
+  `).join('')}</dl>`;
+}
+
+function renderClaimReport({ focusReport = false } = {}) {
+  const selectedMode = getSelectedEstimateMode();
+  const estimates = getAnswers(selectedMode);
+  const combined = calculateCombined(estimates);
+  const compensable = estimates.filter(item => item.rating > 0);
+  const includeFullDetails = Boolean(includeFullEvidenceToggle?.checked);
+  const generatedAt = new Date().toLocaleString();
+  const commonGaps = estimates.flatMap(item => item.evidenceGapAnalysis.missingOrNotEntered.map(gap => `${item.name}: ${gap.missingLabel}`));
+  const suggestions = estimates.flatMap(item => item.evidenceGapAnalysis.suggestions.slice(0, 4).map(suggestion => `${item.name}: ${suggestion}`));
+
+  claimReport.innerHTML = `
+    <div class="reportHeader">
+      <div>
+        <p class="eyebrow">Printable summary</p>
+        <h2 id="claim-report-output-heading">Claim Preparation Report</h2>
+        <p class="scenarioLimitation">Generated ${escapeHtml(generatedAt)} from data currently entered in this browser workspace.</p>
+      </div>
+      <p class="reportRating"><span>${combined.rounded}%</span> estimated combined rating</p>
+    </div>
+    <section class="reportSection">
+      <h3>Privacy and disclaimer</h3>
+      <p>This report is an educational claim-preparation worksheet only. It is not legal, medical, or VA claims advice and does not predict an official VA decision. Actual outcomes depend on medical evidence, service connection, exams, effective dates, pyramiding rules, adjudicator findings, and current law.</p>
+      <p>Workspace data is stored only in this browser when local save is used. Printed/PDF copies and exported files may contain sensitive health and claim information; store and share them carefully.</p>
+    </section>
+    <section class="reportSection">
+      <h3>Claim Planning Dashboard summary</h3>
+      <div class="claimSummaryGrid">
+        <div><strong>Mapped conditions reviewed</strong><p>${estimates.length}</p></div>
+        <div><strong>Compensable selected ratings</strong><p>${compensable.length}</p></div>
+        <div><strong>Selected estimate mode</strong><p>${escapeHtml(estimateModes[selectedMode].label)}</p></div>
+        <div><strong>Unmapped tracking-only conditions</strong><p>${unmappedConditions.length}</p></div>
+      </div>
+    </section>
+    <section class="reportSection">
+      <h3>Individual mapped conditions and selected ratings</h3>
+      <div class="reportConditionList">
+        ${estimates.map(item => `
+          <article class="reportCondition">
+            <h4>${escapeHtml(item.name)} <span>${item.rating}%</span></h4>
+            <p><strong>Reference:</strong> ${escapeHtml(item.code)}</p>
+            <p><strong>Evidence strength:</strong> ${escapeHtml(item.evidenceStrength)}</p>
+            <p><strong>Selected rationale:</strong> ${escapeHtml(item.reason)}</p>
+            <p><strong>Concise evidence summary:</strong></p>
+            ${renderList(getConciseEvidenceSummary(item), 'No concise evidence notes entered')}
+            <p><strong>Evidence gaps:</strong></p>
+            ${renderList(item.evidenceGapAnalysis.missingOrNotEntered.map(gap => `${gap.missingLabel} — ${gap.status === 'missing' ? 'marked missing' : 'not yet entered'}`), 'No gaps detected from current entries')}
+            <p><strong>Documentation suggestions:</strong></p>
+            ${renderList(item.evidenceGapAnalysis.suggestions.slice(0, 5), 'No suggestions generated')}
+            <h5>Planning fields</h5>
+            ${renderPlanningReportList(item.planning)}
+            ${includeFullDetails ? `<details open><summary>Full entered evidence notes</summary><dl class="reportDetails">${evidenceFields.map(field => `<div><dt>${field.label}</dt><dd>${item.evidence.fields[field.id] ? escapeHtml(item.evidence.fields[field.id]) : '<span class="emptyEvidence">Not entered</span>'}</dd></div>`).join('')}</dl></details>` : '<p class="scenarioLimitation">Full evidence notes are omitted by default. Enable “Include full evidence-note details” and regenerate if needed.</p>'}
+          </article>
+        `).join('')}
+      </div>
+    </section>
+    <section class="reportSection">
+      <h3>Workspace evidence gaps and documentation suggestions</h3>
+      <div class="reportTwoColumn">
+        <div><h4>Evidence gaps</h4>${renderList(commonGaps.slice(0, 30), 'No missing or not-entered evidence gaps detected')}</div>
+        <div><h4>Documentation suggestions</h4>${renderList(suggestions.slice(0, 30), 'No documentation suggestions generated')}</div>
+      </div>
+    </section>
+    <section class="reportSection">
+      <h3>Unmapped tracking-only conditions</h3>
+      ${unmappedConditions.length ? unmappedConditions.map(condition => `
+        <article class="reportCondition trackingOnlyReport">
+          <h4>${escapeHtml(condition.name)} <span>Tracking only</span></h4>
+          <p><strong>No rating logic:</strong> excluded from individual estimates and combined-rating math.</p>
+          <p><strong>Body system:</strong> ${condition.bodySystem ? escapeHtml(condition.bodySystem) : 'Not entered'}</p>
+          ${renderPlanningReportList(condition)}
+          <p><strong>Concise notes:</strong> ${condition.notes || condition.symptoms || condition.functionalImpact ? escapeHtml([condition.notes, condition.symptoms, condition.functionalImpact].filter(Boolean).join(' | ')) : 'Not entered'}</p>
+        </article>
+      `).join('') : '<p class="emptyEvidence">No unmapped tracking-only conditions added.</p>'}
+    </section>
+    <section class="reportSection">
+      <h3>Combined-rating calculation summary</h3>
+      <p><strong>Estimated combined rating:</strong> ${combined.rounded}% (raw ${combined.raw.toFixed(1)}%). Tracking-only unmapped conditions are excluded.</p>
+      <div class="steps">${combined.steps.length ? combined.steps.map(step => `<div class="step"><strong>Step ${step.index}: ${escapeHtml(step.name)} (${step.rating}%)</strong> — prior ${step.previous.toFixed(1)}%, remaining ${step.remaining.toFixed(1)}%, new raw ${step.next.toFixed(1)}%.</div>`).join('') : '<div class="step">No compensable individual estimates selected.</div>'}</div>
+    </section>
+  `;
+  if (focusReport) claimReport.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function renderResults() {
   const selectedMode = getSelectedEstimateMode();
   const estimates = getAnswers(selectedMode);
   renderClaimPlanningDashboard(estimates);
   renderClaimPreparationSummary(estimates);
   renderUnmappedConditionList();
+  renderClaimReport();
   individualResults.innerHTML = estimates.map(item => `
     <article class="result card">
       <h3>${item.name}</h3>
@@ -1213,3 +1321,6 @@ autoSaveToggle.addEventListener('change', () => {
   if (autoSaveToggle.checked) saveWorkspace();
 });
 document.querySelector('#resetBtn').addEventListener('click', resetWorkspace);
+generateReportBtn.addEventListener('click', () => renderClaimReport({ focusReport: true }));
+printReportBtn.addEventListener('click', () => { renderClaimReport(); window.print(); });
+includeFullEvidenceToggle.addEventListener('change', () => renderClaimReport());
