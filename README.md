@@ -1,6 +1,10 @@
 # VA Disability Rating Estimator
 
-A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected conditions and demonstrates combined-rating "VA math."
+A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 conditions and demonstrates combined-rating "VA math."
+
+## Regulatory audit status
+
+Version 1 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, and added in-app audit notes explaining assumptions and evidence limitations.
 
 ## Version 1 conditions
 
@@ -9,7 +13,7 @@ A mobile-friendly, static educational web app that estimates possible VA disabil
 - Shoulder limitation of motion
 - Flat feet / pes planus
 - Bunion / hallux valgus
-- GERD or analogous digestive rating
+- GERD
 - Hypertension
 - Sleep apnea
 
