@@ -38,6 +38,13 @@ main { padding: 1.25rem; }
 }
 .notice { padding: 1rem 1.1rem; border-left: 6px solid #c2410c; margin-top: -2rem; }
 .intro { padding: 1.25rem; margin: 1rem 0; }
+.future-workspace { padding: 1.25rem; margin: 1rem 0; }
+.future-workspace > p:not(.eyebrow) { color: var(--muted); margin-top: 0; }
+.featureGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .85rem; margin-top: 1rem; }
+.featureGrid div { background: #f8fbff; border: 1px solid var(--border); border-radius: 14px; padding: .9rem; }
+.featureGrid strong, .featureGrid span { display: block; }
+.featureGrid strong { color: var(--brand-dark); margin-bottom: .35rem; }
+.featureGrid span { color: var(--muted); font-size: .93rem; }
 .conditions { display: grid; gap: 1rem; }
 .condition { padding: 1.25rem; }
 .conditionHeader { display: flex; gap: 1rem; justify-content: space-between; align-items: start; border-bottom: 1px solid var(--border); padding-bottom: .75rem; margin-bottom: 1rem; }
