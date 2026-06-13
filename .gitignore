@@ -1,0 +1,9 @@
+.env
+.env.*
+*.pem
+*.key
+*.crt
+id_rsa*
+id_ed25519*
+va-claim-workspace-*.json
+*.pdf
