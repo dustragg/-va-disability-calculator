@@ -32,9 +32,25 @@
 
     <section class="card workspaceControls" aria-labelledby="workspace-controls-heading">
       <div>
-        <p class="eyebrow">Version 5</p>
+        <p class="eyebrow">Version 6</p>
         <h2 id="workspace-controls-heading">Personal VA Claim Workspace</h2>
-        <p>Save this browser workspace, export a backup JSON file, or import a prior export while keeping rating criteria and evidence tracking separate.</p>
+        <p>Save this browser workspace, choose an educational estimate mode, export a backup JSON file, or import a prior export while keeping rating criteria and evidence tracking separate.</p>
+      </div>
+
+      <div class="estimateModeControls" aria-labelledby="estimate-mode-heading">
+        <div>
+          <p class="eyebrow">Estimate mode</p>
+          <h3 id="estimate-mode-heading">Scenario lens</h3>
+          <p>Choose how results are labeled and cautioned. The audited rating math remains based on the rating criteria you select.</p>
+        </div>
+        <label for="estimateModeSelect">Selected estimate mode
+          <select id="estimateModeSelect" name="estimateMode">
+            <option value="realistic">Realistic</option>
+            <option value="conservative">Conservative</option>
+            <option value="optimistic">Optimistic</option>
+          </select>
+          <span class="help">Realistic is the existing baseline estimate unless you choose another scenario.</span>
+        </label>
       </div>
       <div class="workspaceActions" aria-label="Workspace save and export controls">
         <button id="saveWorkspaceBtn" type="button">Save workspace</button>
@@ -72,8 +88,13 @@
         <button id="resetBtn" type="button" class="danger">Reset workspace</button>
       </div>
       <div id="individualResults" class="resultGrid"></div>
+      <div class="scenarioSummary card">
+        <h3>Scenario summary</h3>
+        <p class="scenarioLimitation">First-pass framework: conservative, realistic, and optimistic combined estimates currently use the same audited selected-rating inputs. Evidence readiness changes warnings and support cautions, not rating math.</p>
+        <div id="scenarioSummaryGrid" class="scenarioSummaryGrid"></div>
+      </div>
       <div class="combined card">
-        <h3>Combined VA rating estimate</h3>
+        <h3>Combined VA rating estimate for selected mode</h3>
         <p id="combinedSummary" class="combinedNumber">0%</p>
         <div id="combinedSteps" class="steps"></div>
       </div>
