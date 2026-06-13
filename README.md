@@ -4,7 +4,7 @@ A mobile-friendly, static educational web app that estimates possible VA disabil
 
 ## Regulatory audit status
 
-Version 1 through Version 8 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, added educational estimate-mode scenario labels that preserve the selected-rating math, added evidence-gap analysis with documentation suggestions that remain separate from rating math, and added custom unmapped condition tracking records that never create ratings or affect combined-rating math, and added a printable claim-preparation report for organizing the current workspace.
+Version 1 through Version 8 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, added educational estimate-mode scenario labels that preserve the selected-rating math, added evidence-gap analysis with documentation suggestions that remain separate from rating math, added custom unmapped condition tracking records that never create ratings or affect combined-rating math, and added a printable claim-preparation report for organizing the current workspace.
 
 ## Version 1 conditions
 
@@ -34,8 +34,32 @@ Version 1 through Version 8 criteria were reviewed against current eCFR rating s
 
 Version 4 begins the Personal VA Claim Workspace foundation while keeping the app static and preserving all estimator behavior. Every mapped condition now includes structured, optional evidence fields for symptoms, symptom frequency, symptom severity, medications and treatment, flare-ups, functional impact, work impact, doctor comments, radiology/imaging findings, DBQ findings, and general evidence notes. Each evidence category can be marked as evidence present, evidence missing, or evidence not yet entered.
 
-Version 5 adds optional browser persistence and user-controlled backup. Workspace entries can be saved to this browser's local storage, automatically reloaded when the page opens, manually saved, exported as JSON, imported from a prior JSON export, or reset after confirmation. Evidence collection remains separate from the audited rating criteria and does not alter rating calculations.
+## Version 5 save, import, and export foundation
 
+Version 5 keeps the application static and browser-only while adding persistence and backup controls for the Personal VA Claim Workspace.
+
+### Saving
+
+- The **Save workspace** button stores the current rating selections, evidence text fields, and evidence-readiness selections in this browser's local storage.
+- Auto-save is enabled by default and saves changes in the same browser as users edit the workspace. Users can disable auto-save with the checkbox and still use manual save or export.
+- The app displays the last saved timestamp when a workspace has been saved.
+- A saved workspace automatically reloads from local storage on page load.
+
+### JSON export and import
+
+- **Export Workspace** downloads a JSON backup that includes rating selections, evidence fields, evidence-readiness selections, schema version, export timestamp, condition IDs, and evidence field IDs needed to restore the workspace.
+- **Import Workspace** accepts a previously exported JSON file, validates that it is a recognized workspace export, and then restores matching known conditions and fields.
+- Invalid, unreadable, or unrecognized files are rejected with an on-page status message instead of replacing the current workspace.
+
+### Reset workspace
+
+- **Reset workspace** clears all rating selections, evidence entries, and readiness selections, removes saved local-storage workspace data, and requires confirmation before deleting the workspace.
+
+### Privacy limitations
+
+- Workspace data remains in the user's browser local storage on the current device and browser profile.
+- The app has no account system, cloud sync, database, server-side storage, document upload, or AI document parsing.
+- Exported JSON files are controlled entirely by the user; anyone with access to the browser profile or exported files may be able to view entered claim information.
 
 ## Version 6 estimate modes
 
@@ -63,11 +87,11 @@ The top-level Claim Preparation Summary groups conditions by evidence strength a
 
 Limitations: the tool does not upload documents, parse medical records, identify stale or conflicting evidence, determine service connection, provide legal or medical advice, or decide whether evidence is sufficient for an official VA claim. Users must review their own records and the app's suggestions.
 
-## Version 10 printable claim report
+## Version 8 unmapped condition tracking
 
-Version 10 adds a **Generate Claim Report** section that creates a printable claim-preparation report from the current browser workspace without changing any rating criteria, condition logic, evidence-gap logic, or combined-rating math. The report includes the Claim Planning Dashboard summary, estimated combined rating, individual mapped conditions with selected ratings, evidence strength labels, evidence gaps, documentation suggestions, planning fields, unmapped tracking-only conditions, and privacy/disclaimer language.
+Version 8 lets users add custom unmapped conditions to the Personal VA Claim Workspace when the app does not yet include rating logic for that condition. Each custom record includes condition name, body system, claimed theory, notes, symptoms, severity, frequency, medications/treatment, functional impact, work impact, doctor comments, imaging/radiology findings, DBQ findings, and general evidence notes.
 
-The report keeps evidence notes concise by default so printed/PDF copies remain readable. Users can optionally enable full evidence-note details before regenerating or printing the report. The **Print Report** button uses the browser print dialog, and print-specific CSS hides editing controls while formatting the report for paper or PDF. Local save, JSON export/import, unmapped tracking, and all existing calculations are preserved.
+Unmapped records are clearly labeled **Tracking only — no rating logic yet**. They appear in the custom condition list and the Claim Preparation Summary, save to browser local storage, export to JSON, import from JSON, and clear during reset. They are excluded from individual rating results, scenario summaries, and VA combined-rating math, and the app does not create ratings for them. Version 8 keeps compatibility with prior Version 5, Version 6, and Version 7 workspace imports while writing new saves/exports with schema version 8.
 
 ## Version 9 condition status and priority tracking
 
@@ -79,38 +103,11 @@ Version 9 browser saves and JSON exports include planning fields for mapped and 
 
 Limitations remain unchanged: the app does not add rating conditions, alter rating calculations, upload documents, parse records with AI, sync accounts or cloud data, or provide legal or medical advice.
 
-## Version 8 unmapped condition tracking
+## Version 10 printable claim report
 
-Version 8 lets users add custom unmapped conditions to the Personal VA Claim Workspace when the app does not yet include rating logic for that condition. Each custom record includes condition name, body system, claimed theory, notes, symptoms, severity, frequency, medications/treatment, functional impact, work impact, doctor comments, imaging/radiology findings, DBQ findings, and general evidence notes.
+Version 10 adds a **Generate Claim Report** section that creates a printable claim-preparation report from the current browser workspace without changing any rating criteria, condition logic, evidence-gap logic, or combined-rating math. The report includes the Claim Planning Dashboard summary, estimated combined rating, individual mapped conditions with selected ratings, evidence strength labels, evidence gaps, documentation suggestions, planning fields, unmapped tracking-only conditions, and privacy/disclaimer language.
 
-Unmapped records are clearly labeled **Tracking only — no rating logic yet**. They appear in the custom condition list and the Claim Preparation Summary, save to browser local storage, export to JSON, import from JSON, and clear during reset. They are excluded from individual rating results, scenario summaries, and VA combined-rating math, and the app does not create ratings for them. Version 8 keeps compatibility with prior Version 5, Version 6, and Version 7 workspace imports while writing new saves/exports with schema version 8.
-
-## Version 5 save, import, and export foundation
-
-Version 5 keeps the application static and browser-only while adding persistence and backup controls for the Personal VA Claim Workspace.
-
-### Saving
-
-- The **Save workspace** button stores the current rating selections, evidence text fields, and evidence-readiness selections in this browser's local storage.
-- Auto-save is enabled by default and saves changes in the same browser as users edit the workspace. Users can disable auto-save with the checkbox and still use manual save or export.
-- The app displays the last saved timestamp when a workspace has been saved.
-- A saved workspace automatically reloads from local storage on page load.
-
-### JSON export and import
-
-- **Export Workspace** downloads a JSON backup that includes rating selections, evidence fields, evidence-readiness selections, schema version, export timestamp, condition IDs, and evidence field IDs needed to restore the workspace.
-- **Import Workspace** accepts a previously exported JSON file, validates that it is a recognized workspace export, and then restores matching known conditions and fields.
-- Invalid, unreadable, or unrecognized files are rejected with an on-page status message instead of replacing the current workspace.
-
-### Reset workspace
-
-- **Reset workspace** clears all rating selections, evidence entries, and readiness selections, removes saved local-storage workspace data, and requires confirmation before deleting the workspace.
-
-### Privacy limitations
-
-- Workspace data remains in the user's browser local storage on the current device and browser profile.
-- The app has no account system, cloud sync, database, server-side storage, document upload, or AI document parsing.
-- Exported JSON files are controlled entirely by the user; anyone with access to the browser profile or exported files may be able to view entered claim information.
+The report keeps evidence notes concise by default so printed/PDF copies remain readable. Users can optionally enable full evidence-note details before generating a refreshed report. The **Print Report** button prints the current generated report, creating one only if none exists yet, uses the browser print dialog, and print-specific CSS hides editing controls while formatting the report for paper or PDF. Local save, JSON export/import, unmapped tracking, and all existing calculations are preserved.
 
 ## Project roadmap
 
