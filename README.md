@@ -1,10 +1,10 @@
 # VA Disability Rating Estimator
 
-A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 through Version 10 condition-workspace foundations and demonstrates combined-rating "VA math."
+A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 through Version 11 condition-workspace foundations and demonstrates combined-rating "VA math."
 
 ## Regulatory audit status
 
-Version 1 through Version 8 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, added educational estimate-mode scenario labels that preserve the selected-rating math, added evidence-gap analysis with documentation suggestions that remain separate from rating math, added custom unmapped condition tracking records that never create ratings or affect combined-rating math, and added a printable claim-preparation report for organizing the current workspace.
+Version 1 through Version 8 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, added educational estimate-mode scenario labels that preserve the selected-rating math, added evidence-gap analysis with documentation suggestions that remain separate from rating math, added custom unmapped condition tracking records that never create ratings or affect combined-rating math, added a printable claim-preparation report for organizing the current workspace, and added a Version 11 body-system guided intake UI filter that preserves all rating math.
 
 ## Version 1 conditions
 
@@ -109,6 +109,16 @@ Limitations remain unchanged: the app does not add rating conditions, alter rati
 Version 10 adds a **Generate Claim Report** section that creates a printable claim-preparation report from the current browser workspace without changing any rating criteria, condition logic, evidence-gap logic, or combined-rating math. The report includes the Claim Planning Dashboard summary, estimated combined rating, individual mapped conditions with selected ratings, evidence strength labels, evidence gaps, documentation suggestions, planning fields, unmapped tracking-only conditions, and privacy/disclaimer language.
 
 The report keeps evidence notes concise by default so printed/PDF copies remain readable. Users can optionally enable full evidence-note details before generating a refreshed report. The **Print Report** button prints the current generated report, creating one only if none exists yet, uses the browser print dialog, and print-specific CSS hides editing controls while formatting the report for paper or PDF. Local save, JSON export/import, unmapped tracking, and all existing calculations are preserved.
+
+## Version 11 body-system guided intake
+
+Version 11 adds a **What areas are affecting you?** guided intake section before the mapped condition modules. Veterans can select broad body areas and symptom groups such as neck, lower back, feet/ankles, headaches, numbness/tingling, sleep problems, reflux, mental health symptoms, or high blood pressure, and the app focuses the visible mapped condition modules on the corresponding existing rating templates.
+
+The guided intake is a UI filter only. It does not create new rating logic, remove existing condition modules, reset hidden condition answers, change evidence-gap analysis, alter claim-planning data, modify reports, or change combined-rating math. If no selections are made, all mapped conditions remain visible by default for backward compatibility. **Show All Conditions** displays every mapped module while preserving all saved ratings and workspace data.
+
+Breathing Problems intentionally does not add respiratory rating calculations. Instead, the app displays: “Respiratory conditions are not yet implemented. Consider using a tracking-only custom condition.”
+
+Version 11 browser saves and JSON exports include body-system selections. Imports from Version 10 and earlier still load because absent body-system selections default to an empty selection set, which shows all mapped conditions.
 
 ## Project roadmap
 

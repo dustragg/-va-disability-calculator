@@ -32,7 +32,7 @@
 
     <section class="card workspaceControls" aria-labelledby="workspace-controls-heading">
       <div>
-        <p class="eyebrow">Version 10</p>
+        <p class="eyebrow">Version 11</p>
         <h2 id="workspace-controls-heading">Personal VA Claim Workspace</h2>
         <p>Save this browser workspace, choose an educational estimate mode, add claim-planning status fields, track unmapped conditions, generate a printable claim-preparation report, export a backup JSON file, or import a prior export while keeping rating criteria, evidence tracking, and evidence-gap suggestions separate.</p>
       </div>
@@ -112,6 +112,17 @@
       <p class="eyebrow">Printable summary</p>
       <h2 id="claim-report-output-heading">Claim Report</h2>
       <p class="scenarioLimitation">Use “Generate Claim Report” to refresh this printable summary from the current workspace.</p>
+    </section>
+
+
+    <section class="card bodySystemIntake" aria-labelledby="body-system-intake-heading">
+      <div class="sectionHeading">
+        <p class="eyebrow">Version 11 guided intake</p>
+        <h2 id="body-system-intake-heading">What areas are affecting you?</h2>
+        <p>Select broad body areas or symptom groups to focus the condition modules below. If nothing is selected, all existing mapped conditions remain visible for backward compatibility. This is only a UI filter and does not change ratings, evidence, planning data, reports, or combined-rating math.</p>
+      </div>
+      <form id="bodySystemIntakeForm" class="bodySystemIntakeForm" novalidate></form>
+      <p id="respiratoryIntakeNote" class="intakeNote" hidden>Respiratory conditions are not yet implemented. Consider using a tracking-only custom condition.</p>
     </section>
 
     <form id="ratingForm" class="conditions" novalidate></form>
