@@ -122,3 +122,18 @@ textarea::placeholder { color: #8795aa; }
   .evidenceGrid { grid-template-columns: 1fr; }
   .evidenceField { padding: .75rem; }
 }
+.workspaceControls, .privacyNotice { padding: 1.25rem; margin: 1rem 0; }
+.workspaceControls > div:first-child p:not(.eyebrow), .privacyNotice li { color: var(--muted); }
+.workspaceActions { display: flex; flex-wrap: wrap; gap: .65rem; margin: 1rem 0; align-items: center; }
+.importButton { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: .75rem 1rem; font-weight: 800; cursor: pointer; }
+#importWorkspaceInput { position: absolute; inline-size: 1px; block-size: 1px; opacity: 0; pointer-events: none; }
+.autoSaveToggle { display: flex; grid-template-columns: auto 1fr; align-items: center; gap: .55rem; font-weight: 800; }
+.autoSaveToggle input { inline-size: 1.1rem; block-size: 1.1rem; }
+.storageStatus, .importStatus { color: var(--muted); margin: .65rem 0 0; font-weight: 700; }
+.privacyNotice { border-left: 6px solid var(--brand); }
+.privacyNotice ul { margin-bottom: 0; padding-left: 1.2rem; }
+.danger { background: #fee2e2; color: #991b1b; }
+@media (max-width: 680px) {
+  .workspaceActions { display: grid; }
+  .workspaceActions button, .importButton, .danger { width: 100%; }
+}

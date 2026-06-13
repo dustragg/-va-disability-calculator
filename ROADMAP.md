@@ -2,7 +2,7 @@
 
 ## Current project status
 
-The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not store personal data, manage accounts, upload documents, parse DBQs, or provide legal, medical, or VA claims advice.
+The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not manage accounts, upload documents, parse DBQs, use cloud sync, or provide legal, medical, or VA claims advice. Version 5 can optionally store workspace data in the user's own browser local storage and export/import user-controlled JSON backups.
 
 Current capabilities include:
 
@@ -11,7 +11,8 @@ Current capabilities include:
 - Combined-rating VA math using individual estimates and 38 CFR § 4.25-style rounding.
 - In-browser form inputs and live results.
 - Static hosting with no server-side persistence.
-- Version 4 in-memory evidence tracking fields for every mapped condition, displayed separately from rating calculations.
+- Version 4 evidence tracking fields for every mapped condition, displayed separately from rating calculations.
+- Version 5 browser local-storage save/reload, manual save, JSON export/import, reset, and privacy notice controls.
 
 ## Completed versions
 
@@ -72,9 +73,21 @@ Completed Version 4 work:
 - Preserved all existing rating logic, condition templates, audit notes, combined-rating calculations, and static browser-only behavior.
 - Kept evidence in memory only; no local storage, database, accounts, cloud sync, export/import, document upload, or AI parsing was implemented.
 
+### Version 5: save and export foundation
+
+Completed Version 5 work:
+
+- Added optional browser local-storage saving with automatic reload on page load.
+- Added a visible last-saved timestamp, manual save button, and auto-save disable control.
+- Added JSON export containing rating selections, evidence fields, evidence-readiness selections, schema version, export timestamp, and restore metadata.
+- Added JSON import with structure validation and graceful invalid-file handling.
+- Added confirmed workspace reset that clears form data and removes saved local-storage workspace data.
+- Added a prominent privacy notice explaining browser-only data handling, no accounts, no cloud sync, no server storage, and user-controlled exports.
+- Preserved existing rating calculations, condition templates, audit notes, evidence tracking, and combined-rating behavior.
+
 ## Planned versions
 
-### Version 5: claim workspace data structure without persistence
+### Version 6: claim workspace data structure expansion
 
 Goal: continue the architecture for a future Personal VA Claim Workspace while keeping the app static and preserving the existing estimator.
 
@@ -85,7 +98,7 @@ Planned work:
 - Add conservative, realistic, and optimistic estimate-mode definitions without changing existing calculations.
 - Add evidence-gap categories and documentation suggestions as structured metadata.
 
-### Version 6: local claim workspace prototype
+### Version 7: local claim workspace prototype
 
 Goal: allow users to manage a personal claim workspace in the browser without accounts, cloud storage, or server persistence.
 
@@ -96,7 +109,7 @@ Potential implementation options:
 - Support unlimited user-added conditions as tracking records.
 - Allow mapped conditions to connect to rating templates while unmapped conditions remain tracking-only.
 
-### Version 7: reports and export workflows
+### Version 8: reports and export workflows
 
 Goal: help users prepare claim-review materials from their own entered data.
 
@@ -108,7 +121,7 @@ Planned work:
 - Export to JSON and printable HTML/PDF-friendly layouts.
 - Plain-language summaries of symptoms, functional impact, and supporting evidence.
 
-### Version 8: document-ready architecture
+### Version 9: document-ready architecture
 
 Goal: prepare for eventual document upload and DBQ parsing without implementing those features prematurely.
 
@@ -276,7 +289,7 @@ Evidence tracking should evolve in stages:
 3. Evidence-gap detection based on condition-template requirements.
 4. Documentation suggestions tied to each gap.
 5. Claim-preparation summary generation.
-6. Optional local import/export of evidence records.
+6. Expanded local import/export workflows beyond the Version 5 JSON workspace backup.
 7. Future document metadata and parser-review workflow.
 
 Evidence-gap examples:
