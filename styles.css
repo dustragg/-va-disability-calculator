@@ -63,6 +63,7 @@ button { border: 0; border-radius: 999px; padding: .75rem 1rem; font-weight: 800
 .result { padding: 1rem; }
 .rating { font-size: 2.4rem; line-height: 1; color: var(--brand); font-weight: 900; margin: .25rem 0; }
 .result ul { padding-left: 1.2rem; }
+.notes { color: var(--muted); font-size: .92rem; }
 .citation { color: var(--muted); font-size: .9rem; }
 .combined { padding: 1.25rem; margin-top: 1rem; }
 .combinedNumber { font-size: clamp(3rem, 10vw, 5rem); font-weight: 950; color: var(--brand); margin: 0; }
