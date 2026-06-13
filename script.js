@@ -391,6 +391,8 @@ let unmappedConditions = [];
 const form = document.querySelector('#ratingForm');
 const unmappedConditionForm = document.querySelector('#unmappedConditionForm');
 const unmappedConditionList = document.querySelector('#unmappedConditionList');
+const bodySystemIntakeForm = document.querySelector('#bodySystemIntakeForm');
+const respiratoryIntakeNote = document.querySelector('#respiratoryIntakeNote');
 const addUnmappedConditionBtn = document.querySelector('#addUnmappedConditionBtn');
 const individualResults = document.querySelector('#individualResults');
 const combinedSummary = document.querySelector('#combinedSummary');
@@ -412,10 +414,103 @@ const includeFullEvidenceToggle = document.querySelector('#includeFullEvidenceTo
 let claimReportGenerated = false;
 let claimReportStale = false;
 
-const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v10';
-const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v9', 'vaDisabilityCalculator.workspace.v8', 'vaDisabilityCalculator.workspace.v7', 'vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
+const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v11';
+const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v10', 'vaDisabilityCalculator.workspace.v9', 'vaDisabilityCalculator.workspace.v8', 'vaDisabilityCalculator.workspace.v7', 'vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
 const AUTOSAVE_STORAGE_KEY = 'vaDisabilityCalculator.autoSave.v5';
-const WORKSPACE_SCHEMA_VERSION = 10;
+const WORKSPACE_SCHEMA_VERSION = 11;
+
+
+const bodySystemIntakeGroups = [
+  { legend: 'Musculoskeletal', options: [
+    ['neck', 'Neck'], ['shoulders', 'Shoulders'], ['lowerBack', 'Lower Back'], ['hips', 'Hips'], ['knees', 'Knees'], ['feetAnkles', 'Feet / Ankles']
+  ]},
+  { legend: 'Neurological', options: [
+    ['headachesMigraines', 'Headaches / Migraines'], ['numbnessTingling', 'Numbness / Tingling'], ['nervePain', 'Nerve Pain']
+  ]},
+  { legend: 'Respiratory & Sleep', options: [
+    ['sleepProblems', 'Sleep Problems'], ['breathingProblems', 'Breathing Problems']
+  ]},
+  { legend: 'Digestive', options: [
+    ['heartburnReflux', 'Heartburn / Reflux'], ['digestiveIssues', 'Digestive Issues']
+  ]},
+  { legend: 'Mental Health', options: [
+    ['anxietyDepressionPtsd', 'Anxiety / Depression / PTSD']
+  ]},
+  { legend: 'Other', options: [
+    ['highBloodPressure', 'High Blood Pressure'], ['showAllConditions', 'Show All Conditions']
+  ]}
+];
+
+const respiratoryTrackingOnlyNote = 'Respiratory conditions are not yet implemented. Consider using a tracking-only custom condition.';
+
+const bodySystemConditionMap = {
+  neck: ['neck'],
+  shoulders: ['shoulder'],
+  lowerBack: ['lumbar'],
+  hips: ['hip'],
+  knees: ['knee'],
+  feetAnkles: ['pesPlanus', 'bunion'],
+  headachesMigraines: ['migraines'],
+  numbnessTingling: ['radiculopathyLeft', 'radiculopathyRight', 'femoralNeuropathyLeft', 'femoralNeuropathyRight'],
+  nervePain: ['radiculopathyLeft', 'radiculopathyRight', 'femoralNeuropathyLeft', 'femoralNeuropathyRight'],
+  sleepProblems: ['sleepApnea'],
+  heartburnReflux: ['gerd'],
+  digestiveIssues: ['gerd'],
+  anxietyDepressionPtsd: ['mentalHealth'],
+  highBloodPressure: ['hypertension']
+};
+
+function getBodySystemSelectionsFromForm() {
+  if (!bodySystemIntakeForm) return [];
+  return Array.from(bodySystemIntakeForm.querySelectorAll('input[name="bodySystemSelections"]:checked')).map(input => input.value);
+}
+
+function normalizeBodySystemSelections(values) {
+  const allowed = new Set(bodySystemIntakeGroups.flatMap(group => group.options.map(([value]) => value)));
+  return Array.isArray(values) ? values.filter(value => allowed.has(value)) : [];
+}
+
+function shouldShowAllConditions(selections = getBodySystemSelectionsFromForm()) {
+  return !selections.length || selections.includes('showAllConditions');
+}
+
+function getVisibleConditionIds(selections = getBodySystemSelectionsFromForm()) {
+  if (shouldShowAllConditions(selections)) return new Set(conditions.map(condition => condition.id));
+  return new Set(selections.flatMap(selection => bodySystemConditionMap[selection] || []));
+}
+
+function renderBodySystemIntake() {
+  if (!bodySystemIntakeForm) return;
+  bodySystemIntakeForm.innerHTML = bodySystemIntakeGroups.map(group => `
+    <fieldset class="intakeGroup">
+      <legend>${group.legend}</legend>
+      <div class="intakeOptions">
+        ${group.options.map(([value, label]) => `
+          <label class="checkboxControl"><input type="checkbox" name="bodySystemSelections" value="${value}"> ${label}</label>
+        `).join('')}
+      </div>
+    </fieldset>
+  `).join('');
+}
+
+function applyConditionVisibility() {
+  const selections = getBodySystemSelectionsFromForm();
+  const visibleIds = getVisibleConditionIds(selections);
+  form?.querySelectorAll('[data-condition-id]').forEach(fieldset => {
+    fieldset.hidden = !visibleIds.has(fieldset.dataset.conditionId);
+  });
+  if (respiratoryIntakeNote) respiratoryIntakeNote.hidden = !selections.includes('breathingProblems');
+  if (selections.includes('breathingProblems')) respiratoryIntakeNote.textContent = respiratoryTrackingOnlyNote;
+}
+
+function applyBodySystemSelections(values = []) {
+  if (!bodySystemIntakeForm) return;
+  const selections = new Set(normalizeBodySystemSelections(values));
+  bodySystemIntakeForm.querySelectorAll('input[name="bodySystemSelections"]').forEach(input => {
+    input.checked = selections.has(input.value);
+  });
+  applyConditionVisibility();
+}
 
 const estimateModes = {
   conservative: {
@@ -731,7 +826,7 @@ function renderUnmappedConditionList() {
 
 function renderForm() {
   form.innerHTML = conditions.map(condition => `
-    <fieldset class="condition card">
+    <fieldset class="condition card" data-condition-id="${condition.id}">
       <div class="conditionHeader">
         <div><h2>${condition.name}</h2><p>${condition.description}</p></div>
         <span class="badge">${condition.code}</span>
@@ -820,9 +915,10 @@ function getWorkspacePayload() {
       evidenceFieldIds: evidenceFields.map(field => field.id),
       estimateModeIds: Object.keys(estimateModes),
       unmappedConditionFieldIds: unmappedConditionFields.map(field => field.id),
-      planningFieldIds: planningFields.map(field => field.id)
+      planningFieldIds: planningFields.map(field => field.id),
+      bodySystemSelectionIds: bodySystemIntakeGroups.flatMap(group => group.options.map(([value]) => value))
     },
-    workspace: getCurrentFormData()
+    workspace: { ...getCurrentFormData(), bodySystemSelections: getBodySystemSelectionsFromForm() }
   };
 }
 
@@ -863,6 +959,7 @@ function applyWorkspacePayload(payload) {
   if (!validation.valid) return validation;
 
   applyEstimateModeFromPayload(payload);
+  applyBodySystemSelections(payload.workspace.bodySystemSelections);
   unmappedConditions = Array.isArray(payload.workspace.unmappedConditions)
     ? payload.workspace.unmappedConditions.map(normalizeUnmappedCondition).filter(condition => condition.name)
     : [];
@@ -897,6 +994,7 @@ function applyWorkspacePayload(payload) {
     });
   });
 
+  applyConditionVisibility();
   renderResults();
   return { valid: true };
 }
@@ -997,6 +1095,8 @@ function resetWorkspace() {
   const confirmed = window.confirm('Clear all rating selections, planning fields, evidence fields, readiness selections, unmapped conditions, and saved browser data for this workspace?');
   if (!confirmed) return;
   form.reset();
+  bodySystemIntakeForm?.reset();
+  applyConditionVisibility();
   unmappedConditionForm.reset();
   unmappedConditions = [];
   localStorage.removeItem(WORKSPACE_STORAGE_KEY);
@@ -1312,13 +1412,16 @@ function renderResults({ reportDirty = true } = {}) {
 }
 
 renderUnmappedConditionForm();
+renderBodySystemIntake();
 renderForm();
+applyConditionVisibility();
 loadAutoSavePreference();
 loadSavedWorkspace();
 renderResults({ reportDirty: false });
 estimateModeSelect.addEventListener('change', () => { renderResults(); maybeAutoSave(); });
 form.addEventListener('change', () => { renderResults(); maybeAutoSave(); });
 form.addEventListener('input', () => { renderResults(); maybeAutoSave(); });
+bodySystemIntakeForm?.addEventListener('change', () => { applyConditionVisibility(); renderResults(); maybeAutoSave(); });
 addUnmappedConditionBtn.addEventListener('click', addUnmappedCondition);
 unmappedConditionList.addEventListener('click', event => {
   const button = event.target.closest('.removeUnmappedBtn');
