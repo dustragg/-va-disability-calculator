@@ -2,7 +2,7 @@
 
 ## Current project status
 
-The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not manage accounts, upload documents, parse DBQs, use cloud sync, or provide legal, medical, or VA claims advice. Version 5 can optionally store workspace data in the user's own browser local storage and export/import user-controlled JSON backups.
+The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not manage accounts, upload documents, parse DBQs, use cloud sync, or provide legal, medical, or VA claims advice. Version 6 can optionally store workspace data in the user's own browser local storage and export/import user-controlled JSON backups.
 
 Current capabilities include:
 
@@ -13,6 +13,7 @@ Current capabilities include:
 - Static hosting with no server-side persistence.
 - Version 4 evidence tracking fields for every mapped condition, displayed separately from rating calculations.
 - Version 5 browser local-storage save/reload, manual save, JSON export/import, reset, and privacy notice controls.
+- Version 6 conservative, realistic, and optimistic estimate-mode controls, mode-specific result notes, evidence-readiness warnings, and first-pass scenario summary.
 
 ## Completed versions
 
@@ -87,7 +88,18 @@ Completed Version 5 work:
 
 ## Planned versions
 
-### Version 6: claim workspace data structure expansion
+### Version 6: conservative, realistic, and optimistic estimate modes
+
+Completed Version 6 work:
+
+- Added visible estimate-mode controls for conservative, realistic, and optimistic scenarios.
+- Preserved the existing selected rating as the realistic baseline and kept all audited rating criteria and combined-rating calculations unchanged.
+- Added mode-specific result notes showing selected mode, rating shown, rationale, evidence caution, and whether evidence fields may under-support the estimate.
+- Used evidence-readiness fields to trigger warnings for missing important categories, mostly unentered evidence categories, or no categories marked present.
+- Added a first-pass scenario summary for conservative, realistic, and optimistic combined estimates with an in-UI limitation note that independent scenario logic is not yet implemented.
+- Included selected estimate mode in local storage, JSON export, and JSON import.
+
+### Version 7: claim workspace data structure expansion
 
 Goal: continue the architecture for a future Personal VA Claim Workspace while keeping the app static and preserving the existing estimator.
 
@@ -95,10 +107,10 @@ Planned work:
 
 - Define additional condition-template metadata for unmapped conditions.
 - Expand claim-tracking metadata without coupling it to rating calculations.
-- Add conservative, realistic, and optimistic estimate-mode definitions without changing existing calculations.
 - Add evidence-gap categories and documentation suggestions as structured metadata.
+- Expand conservative, realistic, and optimistic scenario snapshots beyond the Version 6 first-pass framework.
 
-### Version 7: local claim workspace prototype
+### Version 8: local claim workspace prototype
 
 Goal: allow users to manage a personal claim workspace in the browser without accounts, cloud storage, or server persistence.
 
@@ -109,7 +121,7 @@ Potential implementation options:
 - Support unlimited user-added conditions as tracking records.
 - Allow mapped conditions to connect to rating templates while unmapped conditions remain tracking-only.
 
-### Version 8: reports and export workflows
+### Version 9: reports and export workflows
 
 Goal: help users prepare claim-review materials from their own entered data.
 
@@ -121,7 +133,7 @@ Planned work:
 - Export to JSON and printable HTML/PDF-friendly layouts.
 - Plain-language summaries of symptoms, functional impact, and supporting evidence.
 
-### Version 9: document-ready architecture
+### Version 10: document-ready architecture
 
 Goal: prepare for eventual document upload and DBQ parsing without implementing those features prematurely.
 

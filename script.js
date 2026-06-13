@@ -344,10 +344,31 @@ const importWorkspaceInput = document.querySelector('#importWorkspaceInput');
 const autoSaveToggle = document.querySelector('#autoSaveToggle');
 const storageStatus = document.querySelector('#storageStatus');
 const importStatus = document.querySelector('#importStatus');
+const estimateModeSelect = document.querySelector('#estimateModeSelect');
+const scenarioSummaryGrid = document.querySelector('#scenarioSummaryGrid');
 
-const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v5';
+const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v6';
+const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v5'];
 const AUTOSAVE_STORAGE_KEY = 'vaDisabilityCalculator.autoSave.v5';
-const WORKSPACE_SCHEMA_VERSION = 5;
+const WORKSPACE_SCHEMA_VERSION = 6;
+
+const estimateModes = {
+  conservative: {
+    label: 'Conservative',
+    definition: 'Lowest rating clearly supported by entered evidence and selected criteria.',
+    rationale: 'This first-pass conservative scenario does not lower a selected rating solely because fields are blank; it flags support concerns for user review.'
+  },
+  realistic: {
+    label: 'Realistic',
+    definition: 'Most likely rating based on selected criteria and available evidence.',
+    rationale: 'This is the existing baseline estimate driven by the selected audited rating criteria.'
+  },
+  optimistic: {
+    label: 'Optimistic',
+    definition: 'Highest plausible rating if unresolved evidence questions are documented favorably.',
+    rationale: 'This first-pass optimistic scenario does not increase ratings solely because optimistic mode is selected; unresolved evidence questions are shown as cautions.'
+  }
+};
 
 function explain(rating, reason) { return { rating, reason }; }
 
@@ -377,6 +398,46 @@ function groupEvidenceByReadiness(evidence) {
     groups[status].push(field);
     return groups;
   }, { present: [], missing: [], notEntered: [] });
+}
+
+function getSelectedEstimateMode() {
+  return estimateModes[estimateModeSelect?.value] ? estimateModeSelect.value : 'realistic';
+}
+
+function buildEvidenceCautions(evidence) {
+  const groups = groupEvidenceByReadiness(evidence);
+  const importantMissing = ['symptoms', 'symptomFrequency', 'symptomSeverity', 'functionalImpact', 'doctorComments', 'dbqFindings']
+    .filter(id => evidence.readiness[id] === 'missing')
+    .map(id => evidenceFields.find(field => field.id === id)?.label)
+    .filter(Boolean);
+  const notReviewedCount = groups.notEntered.length;
+  const cautions = [];
+
+  if (importantMissing.length) {
+    cautions.push(`Important evidence categories marked missing: ${importantMissing.join(', ')}.`);
+  }
+  if (notReviewedCount > evidenceFields.length / 2) {
+    cautions.push('Most evidence categories are still marked not entered, so support for the selected criteria may be incomplete.');
+  }
+  if (!groups.present.length) {
+    cautions.push('No evidence categories are marked present yet.');
+  }
+
+  return { cautions, underSupported: cautions.length > 0, groups };
+}
+
+function buildModeSpecificResult(item, modeKey) {
+  const mode = estimateModes[modeKey] || estimateModes.realistic;
+  const evidenceReview = buildEvidenceCautions(item.evidence);
+  return {
+    ...item,
+    modeKey,
+    modeLabel: mode.label,
+    modeDefinition: mode.definition,
+    modeRationale: `${mode.rationale} Rating shown remains ${item.rating}% from the selected criteria: ${item.reason}`,
+    evidenceCaution: evidenceReview.cautions.length ? evidenceReview.cautions.join(' ') : 'No evidence-readiness caution triggered by the current entries.',
+    underSupported: evidenceReview.underSupported
+  };
 }
 
 function renderForm() {
@@ -438,7 +499,7 @@ function getCurrentFormData() {
     evidence[condition.id] = getConditionEvidence(condition, data);
   });
 
-  return { ratings, evidence };
+  return { ratings, evidence, estimateMode: getSelectedEstimateMode() };
 }
 
 function getWorkspacePayload() {
@@ -449,18 +510,20 @@ function getWorkspacePayload() {
     metadata: {
       appName: 'VA Disability Rating Estimator',
       conditionIds: conditions.map(condition => condition.id),
-      evidenceFieldIds: evidenceFields.map(field => field.id)
+      evidenceFieldIds: evidenceFields.map(field => field.id),
+      estimateModeIds: Object.keys(estimateModes)
     },
     workspace: getCurrentFormData()
   };
 }
 
-function getAnswers() {
+function getAnswers(modeKey = getSelectedEstimateMode()) {
   const data = new FormData(form);
   return conditions.map(condition => {
     const answers = Object.fromEntries(condition.questions.map(q => [q.id, data.get(`${condition.id}.${q.id}`) || '0']));
     const evidence = getConditionEvidence(condition, data);
-    return { ...condition, evidence, ...condition.estimate(answers) };
+    const baseline = { ...condition, evidence, ...condition.estimate(answers) };
+    return buildModeSpecificResult(baseline, modeKey);
   });
 }
 
@@ -480,9 +543,16 @@ function validateWorkspacePayload(payload) {
   return { valid: true };
 }
 
+function applyEstimateModeFromPayload(payload) {
+  const mode = payload.workspace.estimateMode;
+  if (estimateModeSelect && estimateModes[mode]) estimateModeSelect.value = mode;
+}
+
 function applyWorkspacePayload(payload) {
   const validation = validateWorkspacePayload(payload);
   if (!validation.valid) return validation;
+
+  applyEstimateModeFromPayload(payload);
 
   conditions.forEach(condition => {
     const conditionRatings = payload.workspace.ratings[condition.id] || {};
@@ -539,7 +609,10 @@ function maybeAutoSave() {
 }
 
 function loadSavedWorkspace() {
-  const raw = localStorage.getItem(WORKSPACE_STORAGE_KEY);
+  let raw = localStorage.getItem(WORKSPACE_STORAGE_KEY);
+  if (!raw) {
+    raw = LEGACY_WORKSPACE_STORAGE_KEYS.map(key => localStorage.getItem(key)).find(Boolean);
+  }
   if (!raw) {
     updateStorageStatus();
     return;
@@ -606,6 +679,7 @@ function resetWorkspace() {
   if (!confirmed) return;
   form.reset();
   localStorage.removeItem(WORKSPACE_STORAGE_KEY);
+  LEGACY_WORKSPACE_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
   updateStorageStatus();
   importStatus.textContent = 'Workspace reset and saved browser data removed.';
   renderResults();
@@ -630,11 +704,17 @@ function calculateCombined(ratings) {
 }
 
 function renderResults() {
-  const estimates = getAnswers();
+  const selectedMode = getSelectedEstimateMode();
+  const estimates = getAnswers(selectedMode);
   individualResults.innerHTML = estimates.map(item => `
     <article class="result card">
       <h3>${item.name}</h3>
       <p class="rating">${item.rating}%</p>
+      <p><strong>Selected estimate mode:</strong> ${item.modeLabel} — ${item.modeDefinition}</p>
+      <p><strong>Rating shown for this mode:</strong> ${item.rating}%</p>
+      <p><strong>Mode rationale:</strong> ${item.modeRationale}</p>
+      <p class="evidenceCaution ${item.underSupported ? 'needsReview' : 'ready'}"><strong>Evidence caution:</strong> ${item.evidenceCaution}</p>
+      <p><strong>May be under-supported because evidence fields are missing or not entered:</strong> ${item.underSupported ? 'Yes' : 'No'}</p>
       <p><strong>Why this possible estimate was selected:</strong> ${item.reason}</p>
       <p><strong>Regulatory audit note:</strong> ${item.auditNote}</p>
       ${item.notes ? `<ul class="notes">${item.notes.map(note => `<li>${note}</li>`).join('')}</ul>` : ''}
@@ -663,6 +743,15 @@ function renderResults() {
     </article>
   `).join('');
 
+  const scenarioCombined = Object.entries(estimateModes).map(([key, mode]) => ({ key, mode, combined: calculateCombined(getAnswers(key)) }));
+  scenarioSummaryGrid.innerHTML = scenarioCombined.map(({ key, mode, combined }) => `
+    <div class="scenarioCard ${key === selectedMode ? 'active' : ''}">
+      <strong>${mode.label}</strong>
+      <span>${combined.rounded}%</span>
+      <small>${mode.definition}</small>
+    </div>
+  `).join('');
+
   const combined = calculateCombined(estimates);
   combinedSummary.textContent = `${combined.rounded}%`;
   combinedSteps.innerHTML = combined.steps.length ? combined.steps.map(step => `
@@ -677,6 +766,7 @@ renderForm();
 loadAutoSavePreference();
 loadSavedWorkspace();
 renderResults();
+estimateModeSelect.addEventListener('change', () => { renderResults(); maybeAutoSave(); });
 form.addEventListener('change', () => { renderResults(); maybeAutoSave(); });
 form.addEventListener('input', () => { renderResults(); maybeAutoSave(); });
 saveWorkspaceBtn.addEventListener('click', () => saveWorkspace({ manual: true }));

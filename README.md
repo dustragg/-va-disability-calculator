@@ -1,10 +1,10 @@
 # VA Disability Rating Estimator
 
-A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1, Version 2, Version 3, Version 4, and Version 5 condition-workspace foundations and demonstrates combined-rating "VA math."
+A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 through Version 6 condition-workspace foundations and demonstrates combined-rating "VA math."
 
 ## Regulatory audit status
 
-Version 1 through Version 5 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, and introduced separate evidence-tracking fields that do not alter rating calculations.
+Version 1 through Version 6 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, and added educational estimate-mode scenario labels that preserve the selected-rating math.
 
 ## Version 1 conditions
 
@@ -36,6 +36,21 @@ Version 4 begins the Personal VA Claim Workspace foundation while keeping the ap
 
 Version 5 adds optional browser persistence and user-controlled backup. Workspace entries can be saved to this browser's local storage, automatically reloaded when the page opens, manually saved, exported as JSON, imported from a prior JSON export, or reset after confirmation. Evidence collection remains separate from the audited rating criteria and does not alter rating calculations.
 
+
+## Version 6 estimate modes
+
+Version 6 adds conservative, realistic, and optimistic estimate modes to the Personal VA Claim Workspace. These modes are educational scenario lenses, not predictions of a VA decision.
+
+- **Conservative** means the lowest rating clearly supported by entered evidence and selected criteria. In this first-pass implementation, the app does not automatically lower a selected rating just because evidence fields are blank; it warns when support may be incomplete.
+- **Realistic** means the most likely rating based on selected criteria and available evidence. This remains the baseline behavior from prior versions: the rating shown is driven by the user's selected rating criteria.
+- **Optimistic** means the highest plausible rating if unresolved evidence questions are documented favorably. The app does not automatically increase a rating solely because optimistic mode is selected.
+
+Evidence readiness affects warnings only. Categories marked missing, categories not yet entered, and workspaces with little marked-present evidence can produce caution text and an under-supported flag for each condition result. Evidence readiness does not invent higher ratings, reduce ratings, replace criteria selections, or alter combined-rating VA math.
+
+The scenario summary shows conservative, realistic, and optimistic combined estimates. Because full independent scenario logic is not implemented yet, all three combined estimates currently use the same audited selected-rating inputs and disclose that limitation in the UI.
+
+Version 6 save/export/import compatibility includes the selected estimate mode in browser local storage and JSON workspace backups.
+
 ## Version 5 save, import, and export foundation
 
 Version 5 keeps the application static and browser-only while adding persistence and backup controls for the Personal VA Claim Workspace.
@@ -65,7 +80,7 @@ Version 5 keeps the application static and browser-only while adding persistence
 
 ## Project roadmap
 
-The project roadmap is to preserve the existing regulatory-audited rating estimator while evolving the app into a future Personal VA Claim Workspace. Planned architecture includes condition templates, mapped and unmapped condition tracking, structured evidence notes, conservative/realistic/optimistic estimate modes, claim-preparation summaries, exports, and future document-ingestion boundaries.
+The project roadmap is to preserve the existing regulatory-audited rating estimator while evolving the app into a future Personal VA Claim Workspace. Planned architecture includes condition templates, mapped and unmapped condition tracking, structured evidence notes, expanded scenario logic, claim-preparation summaries, exports, and future document-ingestion boundaries.
 
 See [ROADMAP.md](ROADMAP.md) for the long-term architecture and version plan.
 
