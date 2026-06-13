@@ -334,17 +334,45 @@ const evidenceReadinessOptions = [
   ['missing', 'Evidence missing']
 ];
 
+const planningFields = [
+  { id: 'conditionStatus', label: 'Condition status', type: 'select', options: [
+    ['diagnosed', 'Diagnosed'],
+    ['suspected', 'Suspected'],
+    ['pendingEvaluation', 'Pending evaluation'],
+    ['notApplicable', 'Not applicable']
+  ]},
+  { id: 'claimStatus', label: 'Claim status', type: 'select', options: [
+    ['notClaimed', 'Not claimed'],
+    ['planned', 'Planned'],
+    ['submitted', 'Submitted'],
+    ['deferred', 'Deferred'],
+    ['decided', 'Decided']
+  ]},
+  { id: 'serviceConnectionTheory', label: 'Service connection theory', type: 'select', options: [
+    ['direct', 'Direct'],
+    ['secondary', 'Secondary'],
+    ['presumptive', 'Presumptive'],
+    ['increase', 'Increase'],
+    ['aggravation', 'Aggravation'],
+    ['notSureYet', 'Not sure yet']
+  ]},
+  { id: 'medicalEvidenceStrength', label: 'Medical evidence strength', type: 'select', options: [
+    ['none', 'None'],
+    ['partial', 'Partial'],
+    ['strong', 'Strong']
+  ]},
+  { id: 'priority', label: 'Priority', type: 'select', options: [
+    ['high', 'High'],
+    ['medium', 'Medium'],
+    ['low', 'Low']
+  ]},
+  { id: 'personalNotes', label: 'Personal notes', type: 'textarea', prompt: 'Planning notes, next steps, deadlines, questions, or reminders.' }
+];
+
 const unmappedConditionFields = [
   { id: 'name', label: 'Condition name', type: 'text', prompt: 'Example: chronic sinus symptoms, wrist pain, skin rash' },
   { id: 'bodySystem', label: 'Body system', type: 'text', prompt: 'Example: Respiratory, Musculoskeletal, Skin, Neurologic' },
-  { id: 'claimedTheory', label: 'Claimed theory', type: 'select', options: [
-    ['direct', 'Direct service connection'],
-    ['secondary', 'Secondary service connection'],
-    ['increase', 'Increase for existing service-connected condition'],
-    ['presumptive', 'Presumptive service connection'],
-    ['aggravation', 'Aggravation'],
-    ['unknown', 'Not sure yet']
-  ]},
+  ...planningFields,
   { id: 'notes', label: 'Notes', type: 'textarea', prompt: 'High-level claim notes, timeline, or questions to resolve.' },
   { id: 'symptoms', label: 'Symptoms', type: 'textarea', prompt: 'Main symptoms and observable effects.' },
   { id: 'severity', label: 'Severity', type: 'textarea', prompt: 'Severity level, duration, and what makes symptoms better or worse.' },
@@ -376,11 +404,12 @@ const importStatus = document.querySelector('#importStatus');
 const estimateModeSelect = document.querySelector('#estimateModeSelect');
 const scenarioSummaryGrid = document.querySelector('#scenarioSummaryGrid');
 const claimPreparationSummary = document.querySelector('#claimPreparationSummary');
+const claimPlanningDashboard = document.querySelector('#claimPlanningDashboard');
 
-const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v8';
-const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v7', 'vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
+const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v9';
+const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v8', 'vaDisabilityCalculator.workspace.v7', 'vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
 const AUTOSAVE_STORAGE_KEY = 'vaDisabilityCalculator.autoSave.v5';
-const WORKSPACE_SCHEMA_VERSION = 8;
+const WORKSPACE_SCHEMA_VERSION = 9;
 
 const estimateModes = {
   conservative: {
@@ -414,6 +443,32 @@ function escapeHtml(value) {
 
 function normalizeEvidenceValue(value) {
   return String(value || '').trim();
+}
+
+function getDefaultPlanningValue(field) {
+  if (field.id === 'conditionStatus') return 'notApplicable';
+  if (field.id === 'claimStatus') return 'notClaimed';
+  if (field.id === 'serviceConnectionTheory') return 'notSureYet';
+  if (field.id === 'medicalEvidenceStrength') return 'none';
+  if (field.id === 'priority') return 'medium';
+  return '';
+}
+
+function normalizePlanningValue(field, value) {
+  if (field.type === 'select') {
+    const normalized = normalizeEvidenceValue(value);
+    return field.options.some(([optionValue]) => optionValue === normalized) ? normalized : getDefaultPlanningValue(field);
+  }
+  return normalizeEvidenceValue(value);
+}
+
+function getPlanningLabel(fieldId, value) {
+  const field = planningFields.find(item => item.id === fieldId);
+  return field?.options?.find(([optionValue]) => optionValue === value)?.[1] || value || 'Not entered';
+}
+
+function getConditionPlanning(condition, data) {
+  return Object.fromEntries(planningFields.map(field => [field.id, normalizePlanningValue(field, data.get(`${condition.id}.planning.${field.id}`))]));
 }
 
 function getConditionEvidence(condition, data) {
@@ -596,7 +651,10 @@ function buildModeSpecificResult(item, modeKey) {
 
 
 function normalizeUnmappedCondition(record = {}) {
-  const normalized = Object.fromEntries(unmappedConditionFields.map(field => [field.id, normalizeEvidenceValue(record[field.id])]));
+  const normalized = Object.fromEntries(unmappedConditionFields.map(field => [field.id, field.type === 'select' ? normalizePlanningValue(field, record[field.id]) : normalizeEvidenceValue(record[field.id])]));
+  if ((!record.serviceConnectionTheory || record.serviceConnectionTheory === 'unknown') && record.claimedTheory) {
+    normalized.serviceConnectionTheory = record.claimedTheory === 'unknown' ? 'notSureYet' : normalizePlanningValue(planningFields.find(field => field.id === 'serviceConnectionTheory'), record.claimedTheory);
+  }
   normalized.id = normalizeEvidenceValue(record.id) || `unmapped-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   normalized.trackingOnly = true;
   normalized.ratingLogic = 'none';
@@ -612,7 +670,7 @@ function renderUnmappedConditionForm() {
   unmappedConditionForm.innerHTML = unmappedConditionFields.map(field => {
     const name = `unmapped.${field.id}`;
     if (field.type === 'select') {
-      return `<label for="unmapped-${field.id}">${field.label}<select id="unmapped-${field.id}" name="${name}">${field.options.map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}</select></label>`;
+      return `<label for="unmapped-${field.id}">${field.label}<select id="unmapped-${field.id}" name="${name}">${field.options.map(([value, label]) => `<option value="${value}"${value === getDefaultPlanningValue(field) ? ' selected' : ''}>${label}</option>`).join('')}</select></label>`;
     }
     if (field.type === 'text') {
       return `<label for="unmapped-${field.id}">${field.label}<input id="unmapped-${field.id}" name="${name}" type="text" placeholder="${field.prompt}"></label>`;
@@ -640,11 +698,6 @@ function removeUnmappedCondition(id) {
   maybeAutoSave();
 }
 
-function getClaimedTheoryLabel(value) {
-  const field = unmappedConditionFields.find(item => item.id === 'claimedTheory');
-  return field?.options.find(([optionValue]) => optionValue === value)?.[1] || value || 'Not entered';
-}
-
 function renderUnmappedConditionList() {
   if (!unmappedConditions.length) {
     unmappedConditionList.innerHTML = '<p class="emptyEvidence">No custom unmapped conditions added yet.</p>';
@@ -661,9 +714,8 @@ function renderUnmappedConditionList() {
       </div>
       <dl class="unmappedDetails">
         <div><dt>Body system</dt><dd>${condition.bodySystem ? escapeHtml(condition.bodySystem) : '<span class="emptyEvidence">Not entered</span>'}</dd></div>
-        <div><dt>Claimed theory</dt><dd>${escapeHtml(getClaimedTheoryLabel(condition.claimedTheory))}</dd></div>
-        ${unmappedConditionFields.filter(field => !['name', 'bodySystem', 'claimedTheory'].includes(field.id)).map(field => `
-          <div><dt>${field.label}</dt><dd>${condition[field.id] ? escapeHtml(condition[field.id]) : '<span class="emptyEvidence">Not entered</span>'}</dd></div>
+        ${unmappedConditionFields.filter(field => !['name', 'bodySystem'].includes(field.id)).map(field => `
+          <div><dt>${field.label}</dt><dd>${field.type === 'select' ? escapeHtml(getPlanningLabel(field.id, condition[field.id])) : (condition[field.id] ? escapeHtml(condition[field.id]) : '<span class="emptyEvidence">Not entered</span>')}</dd></div>
         `).join('')}
       </dl>
       <button type="button" class="danger removeUnmappedBtn" data-unmapped-id="${escapeHtml(condition.id)}">Remove tracking-only condition</button>
@@ -695,6 +747,22 @@ function renderForm() {
           `).join('')}
         </div>
       </section>
+      <section class="planningCollection" aria-label="Claim planning for ${condition.name}">
+        <div class="sectionHeading">
+          <p class="eyebrow planningEyebrow">Claim planning</p>
+          <h3>Status and priority tracking</h3>
+          <p>Use these optional planning fields to prioritize preparation. They do not affect the rating calculation.</p>
+        </div>
+        <div class="planningGrid">
+          ${planningFields.map(field => {
+            const name = `${condition.id}.planning.${field.id}`;
+            if (field.type === 'select') {
+              return `<label for="${condition.id}-planning-${field.id}">${field.label}<select id="${condition.id}-planning-${field.id}" name="${name}">${field.options.map(([value, label]) => `<option value="${value}"${value === getDefaultPlanningValue(field) ? ' selected' : ''}>${label}</option>`).join('')}</select></label>`;
+            }
+            return `<label for="${condition.id}-planning-${field.id}">${field.label}<textarea id="${condition.id}-planning-${field.id}" name="${name}" rows="3" placeholder="${field.prompt}"></textarea></label>`;
+          }).join('')}
+        </div>
+      </section>
       <section class="evidenceCollection" aria-label="Evidence collection for ${condition.name}">
         <div class="sectionHeading">
           <p class="eyebrow evidenceEyebrow">Evidence only</p>
@@ -724,13 +792,15 @@ function getCurrentFormData() {
   const data = new FormData(form);
   const ratings = {};
   const evidence = {};
+  const planning = {};
 
   conditions.forEach(condition => {
     ratings[condition.id] = Object.fromEntries(condition.questions.map(q => [q.id, data.get(`${condition.id}.${q.id}`) || '0']));
     evidence[condition.id] = getConditionEvidence(condition, data);
+    planning[condition.id] = getConditionPlanning(condition, data);
   });
 
-  return { ratings, evidence, unmappedConditions: unmappedConditions.map(normalizeUnmappedCondition), estimateMode: getSelectedEstimateMode() };
+  return { ratings, evidence, planning, unmappedConditions: unmappedConditions.map(normalizeUnmappedCondition), estimateMode: getSelectedEstimateMode() };
 }
 
 function getWorkspacePayload() {
@@ -743,7 +813,8 @@ function getWorkspacePayload() {
       conditionIds: conditions.map(condition => condition.id),
       evidenceFieldIds: evidenceFields.map(field => field.id),
       estimateModeIds: Object.keys(estimateModes),
-      unmappedConditionFieldIds: unmappedConditionFields.map(field => field.id)
+      unmappedConditionFieldIds: unmappedConditionFields.map(field => field.id),
+      planningFieldIds: planningFields.map(field => field.id)
     },
     workspace: getCurrentFormData()
   };
@@ -754,7 +825,8 @@ function getAnswers(modeKey = getSelectedEstimateMode()) {
   return conditions.map(condition => {
     const answers = Object.fromEntries(condition.questions.map(q => [q.id, data.get(`${condition.id}.${q.id}`) || '0']));
     const evidence = getConditionEvidence(condition, data);
-    const baseline = { ...condition, evidence, ...condition.estimate(answers) };
+    const planning = getConditionPlanning(condition, data);
+    const baseline = { ...condition, evidence, planning, ...condition.estimate(answers) };
     return buildModeSpecificResult(baseline, modeKey);
   });
 }
@@ -810,6 +882,12 @@ function applyWorkspacePayload(payload) {
       const readinessInput = form.elements[`${condition.id}.readiness.${field.id}`];
       const allowedReadiness = evidenceReadinessOptions.map(([value]) => value);
       if (readinessInput && allowedReadiness.includes(readiness[field.id])) readinessInput.value = readiness[field.id];
+    });
+
+    const conditionPlanning = isPlainObject(payload.workspace.planning?.[condition.id]) ? payload.workspace.planning[condition.id] : {};
+    planningFields.forEach(field => {
+      const planningInput = form.elements[`${condition.id}.planning.${field.id}`];
+      if (planningInput) planningInput.value = normalizePlanningValue(field, conditionPlanning[field.id]);
     });
   });
 
@@ -910,7 +988,7 @@ function importWorkspace(file) {
 }
 
 function resetWorkspace() {
-  const confirmed = window.confirm('Clear all rating selections, evidence fields, readiness selections, and saved browser data for this workspace?');
+  const confirmed = window.confirm('Clear all rating selections, planning fields, evidence fields, readiness selections, unmapped conditions, and saved browser data for this workspace?');
   if (!confirmed) return;
   form.reset();
   unmappedConditionForm.reset();
@@ -944,6 +1022,53 @@ function renderList(items, emptyText) {
   return `<ul>${items.length ? items.map(item => `<li>${escapeHtml(item)}</li>`).join('') : `<li>${emptyText}</li>`}</ul>`;
 }
 
+function formatPlanningItem(name, planning) {
+  return `${name} — ${getPlanningLabel('priority', planning.priority)} priority; ${getPlanningLabel('conditionStatus', planning.conditionStatus)}; ${getPlanningLabel('claimStatus', planning.claimStatus)}; evidence ${getPlanningLabel('medicalEvidenceStrength', planning.medicalEvidenceStrength)}`;
+}
+
+function renderPlanningDetails(planning) {
+  return `
+    <section class="planningSummary" aria-label="Claim planning summary">
+      <h4>Claim Planning</h4>
+      <dl>
+        ${planningFields.map(field => `
+          <div><dt>${field.label}</dt><dd>${field.type === 'select' ? escapeHtml(getPlanningLabel(field.id, planning[field.id])) : (planning[field.id] ? escapeHtml(planning[field.id]) : '<span class="emptyEvidence">Not entered</span>')}</dd></div>
+        `).join('')}
+      </dl>
+    </section>`;
+}
+
+function renderClaimPlanningDashboard(estimates) {
+  const highPriority = estimates.filter(item => item.planning.priority === 'high').map(item => formatPlanningItem(item.name, item.planning));
+  const needingDiagnosis = estimates
+    .filter(item => ['suspected', 'pendingEvaluation'].includes(item.planning.conditionStatus))
+    .map(item => formatPlanningItem(item.name, item.planning));
+  const weakEvidence = estimates
+    .filter(item => ['none', 'partial'].includes(item.planning.medicalEvidenceStrength))
+    .map(item => formatPlanningItem(item.name, item.planning));
+  const plannedNotSubmitted = estimates
+    .filter(item => item.planning.claimStatus === 'planned')
+    .map(item => formatPlanningItem(item.name, item.planning));
+  const submittedDecided = estimates
+    .filter(item => ['submitted', 'decided'].includes(item.planning.claimStatus))
+    .map(item => formatPlanningItem(item.name, item.planning));
+  const unmappedTracking = unmappedConditions.map(condition => formatPlanningItem(condition.name, condition));
+
+  claimPlanningDashboard.innerHTML = `
+    <p class="eyebrow">Version 9</p>
+    <h3>Claim Planning Dashboard</h3>
+    <p class="scenarioLimitation">This dashboard groups mapped and unmapped conditions by user-entered planning status. It does not change ratings or determine claim strategy.</p>
+    <div class="claimSummaryGrid">
+      <div><strong>High-priority conditions</strong>${renderList(highPriority, 'None marked high priority')}</div>
+      <div><strong>Conditions needing diagnosis</strong>${renderList(needingDiagnosis, 'None marked suspected or pending evaluation')}</div>
+      <div><strong>Weak/no medical evidence</strong>${renderList(weakEvidence, 'None marked with none or partial medical evidence')}</div>
+      <div><strong>Planned but not submitted</strong>${renderList(plannedNotSubmitted, 'None marked planned')}</div>
+      <div><strong>Submitted/decided</strong>${renderList(submittedDecided, 'None marked submitted or decided')}</div>
+      <div><strong>Unmapped tracking-only conditions</strong>${renderList(unmappedTracking, 'None yet')}</div>
+    </div>
+  `;
+}
+
 function renderClaimPreparationSummary(estimates) {
   const byStrength = {
     'Stronger support': [],
@@ -951,10 +1076,16 @@ function renderClaimPreparationSummary(estimates) {
     'Weak / incomplete support': []
   };
   const categoryCounts = {};
-  const trackingOnlyNames = unmappedConditions.map(condition => `${condition.name} — Tracking only, no rating logic yet`);
+  const trackingOnlyNames = unmappedConditions.map(condition => formatPlanningItem(condition.name, condition));
+  const highPriority = [];
+  const plannedNotSubmitted = [];
+  const submittedOrDecided = [];
 
   estimates.forEach(item => {
     byStrength[item.evidenceStrength].push(item.name);
+    if (item.planning.priority === 'high') highPriority.push(formatPlanningItem(item.name, item.planning));
+    if (item.planning.claimStatus === 'planned') plannedNotSubmitted.push(formatPlanningItem(item.name, item.planning));
+    if (['submitted', 'decided'].includes(item.planning.claimStatus)) submittedOrDecided.push(formatPlanningItem(item.name, item.planning));
     item.evidenceGapAnalysis.missingOrNotEntered.forEach(gap => {
       categoryCounts[gap.label] = (categoryCounts[gap.label] || 0) + 1;
     });
@@ -966,7 +1097,7 @@ function renderClaimPreparationSummary(estimates) {
     .map(([label, count]) => `${label} (${count} condition${count === 1 ? '' : 's'})`);
 
   claimPreparationSummary.innerHTML = `
-    <p class="eyebrow">Version 8</p>
+    <p class="eyebrow">Version 9</p>
     <h3>Claim Preparation Summary</h3>
     <p class="scenarioLimitation">This summary organizes evidence readiness and entered notes. It does not predict an official decision and does not change any rating calculation.</p>
     <div class="claimSummaryGrid">
@@ -974,6 +1105,9 @@ function renderClaimPreparationSummary(estimates) {
       <div><strong>Conditions needing review</strong>${renderList(byStrength['Needs review'], 'None yet')}</div>
       <div><strong>Conditions with weak/incomplete support</strong>${renderList(byStrength['Weak / incomplete support'], 'None yet')}</div>
       <div><strong>Most common missing evidence categories</strong>${renderList(commonMissing, 'No missing or not-entered categories detected')}</div>
+      <div><strong>High-priority planning items</strong>${renderList(highPriority, 'None marked high priority')}</div>
+      <div><strong>Planned but not submitted</strong>${renderList(plannedNotSubmitted, 'None marked planned')}</div>
+      <div><strong>Submitted or decided</strong>${renderList(submittedOrDecided, 'None marked submitted or decided')}</div>
       <div><strong>Unmapped tracking-only conditions</strong>${renderList(trackingOnlyNames, 'None yet')}</div>
     </div>
   `;
@@ -982,6 +1116,7 @@ function renderClaimPreparationSummary(estimates) {
 function renderResults() {
   const selectedMode = getSelectedEstimateMode();
   const estimates = getAnswers(selectedMode);
+  renderClaimPlanningDashboard(estimates);
   renderClaimPreparationSummary(estimates);
   renderUnmappedConditionList();
   individualResults.innerHTML = estimates.map(item => `
@@ -994,6 +1129,7 @@ function renderResults() {
       <p class="evidenceCaution ${item.underSupported ? 'needsReview' : 'ready'}"><strong>Evidence caution:</strong> ${item.evidenceCaution}</p>
       <p class="evidenceStrength"><strong>Evidence strength:</strong> ${item.evidenceStrength}</p>
       <p><strong>May be under-supported because evidence fields are missing or not entered:</strong> ${item.underSupported ? 'Yes' : 'No'}</p>
+      ${renderPlanningDetails(item.planning)}
       <p><strong>Why this possible estimate was selected:</strong> ${item.reason}</p>
       <p><strong>Regulatory audit note:</strong> ${item.auditNote}</p>
       ${item.notes ? `<ul class="notes">${item.notes.map(note => `<li>${note}</li>`).join('')}</ul>` : ''}

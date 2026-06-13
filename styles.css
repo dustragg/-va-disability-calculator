@@ -188,3 +188,13 @@ input[type="text"]::placeholder { color: #8795aa; }
 @media (max-width: 680px) {
   .unmappedConditionForm, .unmappedDetails { grid-template-columns: 1fr; }
 }
+.planningCollection { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 1rem; }
+.planningEyebrow { color: #0f766e; }
+.planningGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .9rem; }
+.planningSummary { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 1rem; }
+.planningSummary h4 { margin: 0 0 .75rem; color: var(--brand-dark); }
+.planningSummary dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .55rem; margin: 0; }
+.planningSummary dl div { background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 12px; padding: .65rem; }
+.planningSummary dt { font-weight: 800; }
+.planningSummary dd { margin: .2rem 0 0; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 680px) { .planningGrid, .planningSummary dl { grid-template-columns: 1fr; } }
