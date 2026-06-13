@@ -251,3 +251,33 @@ input[type="text"]::placeholder { color: #8795aa; }
 .checkboxControl { display: flex; grid-template-columns: auto 1fr; align-items: center; gap: .5rem; font-weight: 700; }
 .checkboxControl input { inline-size: 1.05rem; block-size: 1.05rem; }
 .intakeNote { background: #fff7ed; border: 1px solid #fed7aa; border-left: 5px solid #f97316; border-radius: 12px; color: #7c2d12; font-weight: 800; padding: .85rem; margin: 1rem 0 0; }
+.conditionSelectionMessage {
+  background: #eef6ff;
+  border: 1px dashed var(--brand);
+  border-radius: 16px;
+  color: var(--brand-dark);
+  font-weight: 850;
+  margin: 1rem 0;
+  padding: 1rem;
+  text-align: center;
+}
+.advancedPanel > summary,
+.planningCollection > summary,
+.evidenceCollection > summary,
+.evidenceGapAnalysis > summary,
+.intakeGroup > summary {
+  cursor: pointer;
+  color: var(--brand-dark);
+  font-weight: 900;
+  list-style-position: inside;
+}
+.advancedPanel > summary { padding: 1.1rem 1.25rem; }
+.advancedPanel[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: 1rem; }
+.workspaceControls.advancedPanel, .privacyNotice.advancedPanel, .unmappedConditionBuilder.advancedPanel, .reportControls.advancedPanel { padding: 0 1.25rem 1.25rem; }
+.workspaceControls.advancedPanel:not([open]), .privacyNotice.advancedPanel:not([open]), .unmappedConditionBuilder.advancedPanel:not([open]), .reportControls.advancedPanel:not([open]) { padding-bottom: 0; }
+.claimPreparationSummary.advancedPanel > summary { padding: 0; }
+.claimPreparationSummary.advancedPanel[open] > summary { margin-bottom: 1rem; }
+.planningCollection > summary, .evidenceCollection > summary, .evidenceGapAnalysis > summary { margin-bottom: .85rem; }
+.intakeGroup { padding: .65rem .75rem; }
+.intakeGroup[open] { padding: .9rem; }
+.bodySystemIntakeForm { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }

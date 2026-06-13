@@ -2,7 +2,7 @@
 
 ## Current project status
 
-The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not manage accounts, upload documents, parse DBQs, use cloud sync, or provide legal, medical, or VA claims advice. Version 11 can optionally store workspace data in the user's own browser local storage and export/import user-controlled JSON backups.
+The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not manage accounts, upload documents, parse DBQs, use cloud sync, or provide legal, medical, or VA claims advice. Version 12 can optionally store workspace data in the user's own browser local storage and export/import user-controlled JSON backups.
 
 Current capabilities include:
 
@@ -19,6 +19,7 @@ Current capabilities include:
 - Version 9 condition status, claim status, service-connection theory, medical-evidence strength, priority, personal notes, planning dashboard, and planning-aware save/export/import compatibility.
 - Version 10 printable claim-preparation report with dashboard summary, estimated combined rating, mapped-condition ratings, evidence strength labels, evidence gaps, documentation suggestions, planning fields, unmapped tracking-only conditions, privacy/disclaimer language, optional full evidence details, browser print support, and paper/PDF print styles.
 - Version 11 body-system guided intake that maps broad body areas and symptom groups to existing condition modules as a UI-only filter, including Show All Conditions and a respiratory tracking-only note.
+- Version 12 UI cleanup that moves guided intake first, hides condition modules until an area or Show All Conditions is selected, and collapses advanced workspace/evidence/report sections without changing rating math.
 
 ## Completed versions
 
@@ -160,9 +161,21 @@ Completed Version 11 work:
 - Persisted body-system selections in browser save/load and JSON export/import while preserving Version 10 imports through safe defaults.
 - Preserved all mapped rating calculations, condition modules, evidence-gap analysis, planning dashboards, claim reports, printable reports, and combined-rating math.
 
+### Version 12: UI cleanup and guided intake first
+
+Completed Version 12 work:
+
+- Moved **What areas are affecting you?** directly below the disclaimer so guided intake is the primary first workflow.
+- Replaced the always-expanded body-area grid with compact collapsible checkbox groups that support multiple body-area selections and keep Show All Conditions.
+- Preserved the Version 11 body-area-to-condition mappings, including Lower Back mapping only to the existing Lumbar Spine module.
+- Changed the empty selection state so condition modules are hidden by default and the app prompts users to select an area or Show All Conditions.
+- Kept hidden condition controls enabled so previously saved/imported values remain in form data, save/export/import payloads, reports, and combined-rating math.
+- Collapsed advanced workspace panels, including Personal VA Claim Workspace controls, Privacy Notice, custom unmapped condition tracking, Generate Claim Report, Claim Planning Dashboard, Claim Preparation Summary, per-condition Detailed Evidence Tracking, and result-card Evidence Gap Analysis.
+- Preserved all mapped rating calculations, combined-rating math, estimate modes, planning fields, evidence fields, unmapped conditions, reports, print behavior, body-system selections, and legacy import support.
+
 ## Planned versions
 
-### Version 12: expanded scenario snapshots
+### Version 13: expanded scenario snapshots
 
 Goal: continue the architecture for a future Personal VA Claim Workspace while keeping the app static and preserving the existing estimator.
 
@@ -172,7 +185,7 @@ Planned work:
 - Refine claim-tracking metadata without coupling it to rating calculations.
 - Expand conservative, realistic, and optimistic scenario snapshots beyond the Version 6 first-pass framework.
 
-### Version 13: local claim workspace prototype
+### Version 14: local claim workspace prototype
 
 Goal: allow users to manage a personal claim workspace in the browser without accounts, cloud storage, or server persistence.
 
