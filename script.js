@@ -70,6 +70,79 @@ const conditions = [
     ]}],
     estimate: a => explain(+a.level, 'Selected current DC 5280 hallux valgus criterion.')
   },
+
+  {
+    id: 'lumbar', name: 'Lumbar spine / thoracolumbar limitation', code: '38 CFR § 4.71a, General Rating Formula for Diseases and Injuries of the Spine (DCs 5235-5243); IVDS DC 5243',
+    description: 'Uses the current thoracolumbar General Rating Formula criteria and compares them with the IVDS incapacitating-episode formula, selecting the higher single lumbar-spine estimate.',
+    auditNote: 'Audit: Current spine criteria rate thoracolumbar disability by forward flexion, combined range of motion, abnormal gait/contour, and ankylosis unless IVDS under DC 5243 produces the higher evaluation. DC 5243 is for disc herniation with compression and/or irritation of the adjacent nerve root; other disc diagnoses are generally assigned DC 5242. Incapacitating episodes require physician-prescribed bed rest and treatment by a physician over the past 12 months.',
+    notes: [
+      'Separate objective neurologic abnormalities may be rated separately under an appropriate neurologic diagnostic code; use the lower-extremity radiculopathy entries when supported by evidence.',
+      'Do not count the same manifestation twice. Pain, stiffness, aching, and limitation used for the spine estimate should not also be duplicated under another musculoskeletal code for the same functional impairment.',
+      'This tool compares the General Rating Formula and IVDS formula for the lumbar estimate, but it does not perform the full VA adjudicative analysis of every possible analogous spine diagnosis.'
+    ],
+    questions: [
+      { id: 'general', label: 'What is the closest thoracolumbar spine finding under the General Rating Formula?', options: [
+        ['0', 'No compensable limitation shown'],
+        ['10', 'Forward flexion >60° but ≤85°; combined ROM >120° but ≤235°; localized tenderness/spasm/guarding not causing abnormal gait/contour; or vertebral body fracture with ≥50% height loss'],
+        ['20', 'Forward flexion >30° but ≤60°; combined ROM ≤120°; or spasm/guarding causing abnormal gait or abnormal spinal contour'],
+        ['40', 'Forward flexion 30° or less, or favorable ankylosis of entire thoracolumbar spine'],
+        ['50', 'Unfavorable ankylosis of entire thoracolumbar spine'],
+        ['100', 'Unfavorable ankylosis of entire spine']
+      ]},
+      { id: 'ivds', label: 'If IVDS is documented, what is the total duration of qualifying incapacitating episodes in the past 12 months?', options: [
+        ['0', 'No qualifying IVDS incapacitating episodes, IVDS not documented, or less than 1 week total'],
+        ['10', 'At least 1 week but less than 2 weeks'],
+        ['20', 'At least 2 weeks but less than 4 weeks'],
+        ['40', 'At least 4 weeks but less than 6 weeks'],
+        ['60', 'At least 6 weeks']
+      ]}
+    ],
+    estimate: a => {
+      const general = +a.general;
+      const ivds = +a.ivds;
+      const rating = Math.max(general, ivds);
+      const method = ivds > general ? 'IVDS incapacitating-episode formula' : 'General Rating Formula';
+      return explain(rating, `Selected ${method} because it produces the higher lumbar-spine estimate here (General Formula ${general}%, IVDS ${ivds}%).`);
+    }
+  },
+  {
+    id: 'radiculopathyLeft', name: 'Left lower extremity radiculopathy / sciatic nerve', code: '38 CFR § 4.124a, DC 8520 (sciatic nerve paralysis), DC 8620 (neuritis), DC 8720 (neuralgia)',
+    description: 'Estimates left lower-extremity sciatic radiculopathy separately from the spine and right leg, using current sciatic nerve severity levels.',
+    auditNote: 'Audit: Current sciatic nerve criteria under DC 8520 provide 10% mild, 20% moderate, 40% moderately severe, 60% severe incomplete paralysis with marked muscular atrophy, and 80% complete paralysis. Neuritis and neuralgia use DCs 8620 and 8720. This estimator assumes symptoms are attributable to the sciatic nerve distribution and supported by objective and/or competent evidence.',
+    notes: [
+      'Separate neurologic ratings may be appropriate for objective radiculopathy associated with a lumbar spine condition.',
+      'Bilateral factor is not yet implemented, even if both lower extremities are selected.',
+      'Pyramiding caution: do not rate the same neurologic symptoms under multiple nerves or diagnostic codes unless the evidence clearly supports distinct manifestations.'
+    ],
+    questions: [{ id: 'level', label: 'Which left sciatic nerve finding best fits?', options: [
+      ['0', 'No compensable left sciatic radiculopathy selected'],
+      ['10', 'Mild incomplete paralysis'],
+      ['20', 'Moderate incomplete paralysis'],
+      ['40', 'Moderately severe incomplete paralysis'],
+      ['60', 'Severe incomplete paralysis with marked muscular atrophy'],
+      ['80', 'Complete paralysis: foot dangles and drops, no active movement possible below the knee, knee flexion weakened or very rarely lost']
+    ]}],
+    estimate: a => explain(+a.level, 'Selected current sciatic nerve severity level for the left lower extremity. Rating is separate from lumbar limitation when supported and not duplicative.')
+  },
+  {
+    id: 'radiculopathyRight', name: 'Right lower extremity radiculopathy / sciatic nerve', code: '38 CFR § 4.124a, DC 8520 (sciatic nerve paralysis), DC 8620 (neuritis), DC 8720 (neuralgia)',
+    description: 'Estimates right lower-extremity sciatic radiculopathy separately from the spine and left leg, using current sciatic nerve severity levels.',
+    auditNote: 'Audit: Current sciatic nerve criteria under DC 8520 provide 10% mild, 20% moderate, 40% moderately severe, 60% severe incomplete paralysis with marked muscular atrophy, and 80% complete paralysis. Neuritis and neuralgia use DCs 8620 and 8720. This estimator assumes symptoms are attributable to the sciatic nerve distribution and supported by objective and/or competent evidence.',
+    notes: [
+      'Separate neurologic ratings may be appropriate for objective radiculopathy associated with a lumbar spine condition.',
+      'Bilateral factor is not yet implemented, even if both lower extremities are selected.',
+      'Pyramiding caution: do not rate the same neurologic symptoms under multiple nerves or diagnostic codes unless the evidence clearly supports distinct manifestations.'
+    ],
+    questions: [{ id: 'level', label: 'Which right sciatic nerve finding best fits?', options: [
+      ['0', 'No compensable right sciatic radiculopathy selected'],
+      ['10', 'Mild incomplete paralysis'],
+      ['20', 'Moderate incomplete paralysis'],
+      ['40', 'Moderately severe incomplete paralysis'],
+      ['60', 'Severe incomplete paralysis with marked muscular atrophy'],
+      ['80', 'Complete paralysis: foot dangles and drops, no active movement possible below the knee, knee flexion weakened or very rarely lost']
+    ]}],
+    estimate: a => explain(+a.level, 'Selected current sciatic nerve severity level for the right lower extremity. Rating is separate from lumbar limitation when supported and not duplicative.')
+  },
   {
     id: 'gerd', name: 'GERD', code: '38 CFR § 4.114, DC 7206',
     description: 'Uses the current GERD diagnostic code, which centers on documented esophageal strictures, dysphagia, dilation/stent treatment, nutritional impact, and PEG/surgical correction.',
@@ -172,6 +245,7 @@ function renderResults() {
       <p class="rating">${item.rating}%</p>
       <p><strong>Why this possible estimate was selected:</strong> ${item.reason}</p>
       <p><strong>Regulatory audit note:</strong> ${item.auditNote}</p>
+      ${item.notes ? `<ul class="notes">${item.notes.map(note => `<li>${note}</li>`).join('')}</ul>` : ''}
       <p class="citation"><strong>Reference:</strong> ${item.code}</p>
     </article>
   `).join('');
