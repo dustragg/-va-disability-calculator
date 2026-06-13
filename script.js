@@ -409,6 +409,8 @@ const claimReport = document.querySelector('#claimReport');
 const generateReportBtn = document.querySelector('#generateReportBtn');
 const printReportBtn = document.querySelector('#printReportBtn');
 const includeFullEvidenceToggle = document.querySelector('#includeFullEvidenceToggle');
+let claimReportGenerated = false;
+let claimReportStale = false;
 
 const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v10';
 const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v9', 'vaDisabilityCalculator.workspace.v8', 'vaDisabilityCalculator.workspace.v7', 'vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
@@ -1137,6 +1139,13 @@ function renderPlanningReportList(planning) {
   `).join('')}</dl>`;
 }
 
+function markClaimReportStale() {
+  if (!claimReportGenerated || claimReportStale) return;
+  claimReportStale = true;
+  const staleNotice = claimReport.querySelector('[data-report-stale-notice]');
+  if (staleNotice) staleNotice.hidden = false;
+}
+
 function renderClaimReport({ focusReport = false } = {}) {
   const selectedMode = getSelectedEstimateMode();
   const estimates = getAnswers(selectedMode);
@@ -1147,7 +1156,10 @@ function renderClaimReport({ focusReport = false } = {}) {
   const commonGaps = estimates.flatMap(item => item.evidenceGapAnalysis.missingOrNotEntered.map(gap => `${item.name}: ${gap.missingLabel}`));
   const suggestions = estimates.flatMap(item => item.evidenceGapAnalysis.suggestions.slice(0, 4).map(suggestion => `${item.name}: ${suggestion}`));
 
+  claimReportGenerated = true;
+  claimReportStale = false;
   claimReport.innerHTML = `
+    <div data-report-stale-notice class="scenarioLimitation" hidden>This report may be out of date because workspace entries changed. Use “Generate Claim Report” to refresh before printing or saving a PDF.</div>
     <div class="reportHeader">
       <div>
         <p class="eyebrow">Printable summary</p>
@@ -1220,13 +1232,13 @@ function renderClaimReport({ focusReport = false } = {}) {
   if (focusReport) claimReport.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function renderResults() {
+function renderResults({ reportDirty = true } = {}) {
+  if (reportDirty) markClaimReportStale();
   const selectedMode = getSelectedEstimateMode();
   const estimates = getAnswers(selectedMode);
   renderClaimPlanningDashboard(estimates);
   renderClaimPreparationSummary(estimates);
   renderUnmappedConditionList();
-  renderClaimReport();
   individualResults.innerHTML = estimates.map(item => `
     <article class="result card">
       <h3>${item.name}</h3>
@@ -1303,7 +1315,7 @@ renderUnmappedConditionForm();
 renderForm();
 loadAutoSavePreference();
 loadSavedWorkspace();
-renderResults();
+renderResults({ reportDirty: false });
 estimateModeSelect.addEventListener('change', () => { renderResults(); maybeAutoSave(); });
 form.addEventListener('change', () => { renderResults(); maybeAutoSave(); });
 form.addEventListener('input', () => { renderResults(); maybeAutoSave(); });
@@ -1322,5 +1334,10 @@ autoSaveToggle.addEventListener('change', () => {
 });
 document.querySelector('#resetBtn').addEventListener('click', resetWorkspace);
 generateReportBtn.addEventListener('click', () => renderClaimReport({ focusReport: true }));
-printReportBtn.addEventListener('click', () => { renderClaimReport(); window.print(); });
-includeFullEvidenceToggle.addEventListener('change', () => renderClaimReport());
+printReportBtn.addEventListener('click', () => {
+  if (!claimReportGenerated) renderClaimReport();
+  window.print();
+});
+includeFullEvidenceToggle.addEventListener('change', () => {
+  if (claimReportGenerated) renderClaimReport();
+});
