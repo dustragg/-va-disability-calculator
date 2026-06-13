@@ -2,7 +2,7 @@
 
 ## Current project status
 
-The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not manage accounts, upload documents, parse DBQs, use cloud sync, or provide legal, medical, or VA claims advice. Version 9 can optionally store workspace data in the user's own browser local storage and export/import user-controlled JSON backups.
+The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not manage accounts, upload documents, parse DBQs, use cloud sync, or provide legal, medical, or VA claims advice. Version 10 can optionally store workspace data in the user's own browser local storage and export/import user-controlled JSON backups.
 
 Current capabilities include:
 
@@ -17,6 +17,7 @@ Current capabilities include:
 - Version 7 evidence-gap analysis, documentation suggestions, evidence strength labels, and claim-preparation summary.
 - Version 8 custom unmapped condition tracking with no rating logic and no combined-rating math impact.
 - Version 9 condition status, claim status, service-connection theory, medical-evidence strength, priority, personal notes, planning dashboard, and planning-aware save/export/import compatibility.
+- Version 10 printable claim-preparation report with dashboard summary, estimated combined rating, mapped-condition ratings, evidence strength labels, evidence gaps, documentation suggestions, planning fields, unmapped tracking-only conditions, privacy/disclaimer language, optional full evidence details, browser print support, and paper/PDF print styles.
 
 ## Completed versions
 
@@ -135,9 +136,20 @@ Completed Version 9 work:
 - Preserved Version 5 through Version 8 workspace imports by applying defaults when planning fields are absent and migrating older unmapped claimed-theory values where possible.
 - Preserved all mapped rating calculations, existing rating conditions, evidence-gap logic, estimate modes, and combined-rating math.
 
+### Version 10: claim report and printable summary
+
+Completed Version 10 work:
+
+- Added a Generate Claim Report section and Print Report button.
+- Added a printable Claim Preparation Report generated from the current workspace.
+- Included dashboard summary counts, estimated combined rating, selected estimate mode, individual mapped conditions and selected ratings, evidence strength labels, evidence gaps, documentation suggestions, planning fields, unmapped tracking-only conditions, and privacy/disclaimer language.
+- Kept long evidence notes out of the report by default while allowing users to include full entered evidence details when practical.
+- Added print CSS that hides editing controls and formats the report for paper/PDF output.
+- Preserved local save/export/import, unmapped tracking, all mapped condition logic, and all rating calculations.
+
 ## Planned versions
 
-### Version 10: expanded scenario snapshots
+### Version 11: expanded scenario snapshots
 
 Goal: continue the architecture for a future Personal VA Claim Workspace while keeping the app static and preserving the existing estimator.
 
@@ -147,7 +159,7 @@ Planned work:
 - Refine claim-tracking metadata without coupling it to rating calculations.
 - Expand conservative, realistic, and optimistic scenario snapshots beyond the Version 6 first-pass framework.
 
-### Version 11: local claim workspace prototype
+### Version 12: local claim workspace prototype
 
 Goal: allow users to manage a personal claim workspace in the browser without accounts, cloud storage, or server persistence.
 
@@ -158,7 +170,7 @@ Potential implementation options:
 - Support unlimited user-added conditions as tracking records.
 - Allow mapped conditions to connect to rating templates while unmapped conditions remain tracking-only.
 
-### Version 12: reports and export workflows
+### Version 13: reports and export workflows
 
 Goal: help users prepare claim-review materials from their own entered data.
 
@@ -170,7 +182,7 @@ Planned work:
 - Export to JSON and printable HTML/PDF-friendly layouts.
 - Plain-language summaries of symptoms, functional impact, and supporting evidence.
 
-### Version 13: document-ready architecture
+### Version 14: document-ready architecture
 
 Goal: prepare for eventual document upload and DBQ parsing without implementing those features prematurely.
 

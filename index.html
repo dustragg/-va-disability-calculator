@@ -32,9 +32,9 @@
 
     <section class="card workspaceControls" aria-labelledby="workspace-controls-heading">
       <div>
-        <p class="eyebrow">Version 9</p>
+        <p class="eyebrow">Version 10</p>
         <h2 id="workspace-controls-heading">Personal VA Claim Workspace</h2>
-        <p>Save this browser workspace, choose an educational estimate mode, add claim-planning status fields, track unmapped conditions, export a backup JSON file, or import a prior export while keeping rating criteria, evidence tracking, and evidence-gap suggestions separate.</p>
+        <p>Save this browser workspace, choose an educational estimate mode, add claim-planning status fields, track unmapped conditions, generate a printable claim-preparation report, export a backup JSON file, or import a prior export while keeping rating criteria, evidence tracking, and evidence-gap suggestions separate.</p>
       </div>
 
       <div class="estimateModeControls" aria-labelledby="estimate-mode-heading">
@@ -88,6 +88,30 @@
         <button id="addUnmappedConditionBtn" type="button">Add tracking-only condition</button>
       </div>
       <div id="unmappedConditionList" class="unmappedConditionList" aria-live="polite"></div>
+    </section>
+
+
+    <section class="card reportControls noPrint" aria-labelledby="claim-report-heading">
+      <div>
+        <p class="eyebrow">Version 10</p>
+        <h2 id="claim-report-heading">Generate Claim Report</h2>
+        <p>Create a concise, printable claim-preparation report from the current workspace. The report is for personal organization only and does not change rating calculations, evidence-gap logic, local save/export/import, or tracking-only condition behavior.</p>
+      </div>
+      <label class="fullDetailsToggle">
+        <input id="includeFullEvidenceToggle" type="checkbox" />
+        Include full evidence-note details in report
+        <span class="help">Off by default so printed reports stay concise. Turn on if you want all entered evidence text included.</span>
+      </label>
+      <div class="reportActions">
+        <button id="generateReportBtn" type="button">Generate Claim Report</button>
+        <button id="printReportBtn" type="button" class="secondary">Print Report</button>
+      </div>
+    </section>
+
+    <section id="claimReport" class="claimReport card" aria-live="polite" aria-labelledby="claim-report-output-heading">
+      <p class="eyebrow">Printable summary</p>
+      <h2 id="claim-report-output-heading">Claim Report</h2>
+      <p class="scenarioLimitation">Use “Generate Claim Report” to refresh this printable summary from the current workspace.</p>
     </section>
 
     <form id="ratingForm" class="conditions" novalidate></form>
