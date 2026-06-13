@@ -1,10 +1,10 @@
 # VA Disability Rating Estimator
 
-A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1, Version 2, and Version 3 conditions and demonstrates combined-rating "VA math."
+A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1, Version 2, Version 3, and Version 4 condition-workspace foundations and demonstrates combined-rating "VA math."
 
 ## Regulatory audit status
 
-Version 1 through Version 3 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, and added in-app audit notes explaining assumptions and evidence limitations.
+Version 1 through Version 4 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, and introduced separate evidence-tracking fields that do not alter rating calculations.
 
 ## Version 1 conditions
 
@@ -29,6 +29,12 @@ Version 1 through Version 3 criteria were reviewed against current eCFR rating s
 - Knee conditions, including flexion, extension, instability, and meniscus conditions
 - Mental health conditions using the General Rating Formula for Mental Disorders
 - Left and right femoral nerve peripheral nerve support
+
+## Version 4 evidence tracking foundation
+
+Version 4 begins the Personal VA Claim Workspace foundation while keeping the app static and preserving all estimator behavior. Every mapped condition now includes structured, optional evidence fields for symptoms, symptom frequency, symptom severity, medications and treatment, flare-ups, functional impact, work impact, doctor comments, radiology/imaging findings, DBQ findings, and general evidence notes. Each evidence category can be marked as evidence present, evidence missing, or evidence not yet entered.
+
+Evidence is currently stored only in the live browser form state while the page is open. There is no local storage, database, account system, cloud sync, export/import, document upload, or AI document parsing in this version. This keeps evidence collection separate from the audited rating criteria and prepares the data shape for future save/export functionality.
 
 ## Project roadmap
 

@@ -11,6 +11,7 @@ Current capabilities include:
 - Combined-rating VA math using individual estimates and 38 CFR § 4.25-style rounding.
 - In-browser form inputs and live results.
 - Static hosting with no server-side persistence.
+- Version 4 in-memory evidence tracking fields for every mapped condition, displayed separately from rating calculations.
 
 ## Completed versions
 
@@ -50,21 +51,41 @@ Version 2 also added explicit cautions for:
 - Bilateral-factor limitations.
 - Evidence requirements for IVDS incapacitating episodes.
 
+### Version 3: musculoskeletal, mental-health, and femoral nerve expansion
+
+Completed Version 3 modules:
+
+- Hip conditions, including bursitis and range-of-motion limitations.
+- Knee conditions, including flexion, extension, instability, and meniscus conditions.
+- Mental health conditions using the General Rating Formula for Mental Disorders.
+- Left and right femoral nerve peripheral nerve support.
+
+Version 3 preserved existing rating logic and added mapped condition-template metadata for the new modules.
+
+### Version 4: evidence tracking foundation
+
+Completed Version 4 work:
+
+- Added structured evidence fields for symptoms, symptom frequency, symptom severity, medications and treatment, flare-ups, functional impact, work impact, doctor comments, radiology/imaging findings, DBQ findings, and general evidence notes to every mapped condition currently in the application.
+- Added per-condition Evidence Summary output that displays entered evidence separately from rating criteria and calculation rationale.
+- Added per-condition Evidence Readiness output for evidence present, evidence missing, and evidence not yet entered categories.
+- Preserved all existing rating logic, condition templates, audit notes, combined-rating calculations, and static browser-only behavior.
+- Kept evidence in memory only; no local storage, database, accounts, cloud sync, export/import, document upload, or AI parsing was implemented.
+
 ## Planned versions
 
-### Version 3: claim workspace data structure without persistence
+### Version 5: claim workspace data structure without persistence
 
-Goal: introduce the architecture for a future Personal VA Claim Workspace while keeping the app static and preserving the existing estimator.
+Goal: continue the architecture for a future Personal VA Claim Workspace while keeping the app static and preserving the existing estimator.
 
 Planned work:
 
-- Define condition-template metadata for mapped and unmapped conditions.
-- Separate rating logic from claim-tracking fields.
-- Add client-side-only data shapes for symptoms, frequency, severity, medications, flare-ups, functional impact, doctor comments, radiology findings, DBQ findings, and evidence notes.
+- Define additional condition-template metadata for unmapped conditions.
+- Expand claim-tracking metadata without coupling it to rating calculations.
 - Add conservative, realistic, and optimistic estimate-mode definitions without changing existing calculations.
 - Add evidence-gap categories and documentation suggestions as structured metadata.
 
-### Version 4: local claim workspace prototype
+### Version 6: local claim workspace prototype
 
 Goal: allow users to manage a personal claim workspace in the browser without accounts, cloud storage, or server persistence.
 
@@ -75,7 +96,7 @@ Potential implementation options:
 - Support unlimited user-added conditions as tracking records.
 - Allow mapped conditions to connect to rating templates while unmapped conditions remain tracking-only.
 
-### Version 5: reports and export workflows
+### Version 7: reports and export workflows
 
 Goal: help users prepare claim-review materials from their own entered data.
 
@@ -87,7 +108,7 @@ Planned work:
 - Export to JSON and printable HTML/PDF-friendly layouts.
 - Plain-language summaries of symptoms, functional impact, and supporting evidence.
 
-### Version 6: document-ready architecture
+### Version 8: document-ready architecture
 
 Goal: prepare for eventual document upload and DBQ parsing without implementing those features prematurely.
 

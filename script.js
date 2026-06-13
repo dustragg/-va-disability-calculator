@@ -313,12 +313,61 @@ const conditions = [
   }
 ];
 
+
+const evidenceFields = [
+  { id: 'symptoms', label: 'Symptoms', prompt: 'Describe symptoms in the veteran\'s own words or from medical records.' },
+  { id: 'symptomFrequency', label: 'Symptom frequency', prompt: 'How often symptoms occur, including date ranges when known.' },
+  { id: 'symptomSeverity', label: 'Symptom severity', prompt: 'Severity level, duration, and what makes symptoms better or worse.' },
+  { id: 'medicationsTreatment', label: 'Medications and treatment', prompt: 'Medication names, therapy, devices, procedures, and treatment response.' },
+  { id: 'flareUps', label: 'Flare-ups', prompt: 'Triggers, frequency, duration, additional limitations, and recovery time.' },
+  { id: 'functionalImpact', label: 'Functional impact', prompt: 'Effects on walking, lifting, sleep, concentration, daily tasks, or self-care.' },
+  { id: 'workImpact', label: 'Work impact', prompt: 'Missed work, accommodations, reduced reliability, safety limits, or task limits.' },
+  { id: 'doctorComments', label: 'Doctor comments', prompt: 'Provider notes, diagnoses, restrictions, or medical opinions.' },
+  { id: 'radiologyFindings', label: 'Radiology/imaging findings', prompt: 'X-ray, MRI, CT, EGD, sleep study, or other objective findings.' },
+  { id: 'dbqFindings', label: 'DBQ findings', prompt: 'Relevant DBQ or C&P exam findings and measurements.' },
+  { id: 'generalEvidenceNotes', label: 'General evidence notes', prompt: 'Other lay, medical, or administrative evidence notes.' }
+];
+
+const evidenceReadinessOptions = [
+  ['notEntered', 'Evidence not yet entered'],
+  ['present', 'Evidence present'],
+  ['missing', 'Evidence missing']
+];
+
 const form = document.querySelector('#ratingForm');
 const individualResults = document.querySelector('#individualResults');
 const combinedSummary = document.querySelector('#combinedSummary');
 const combinedSteps = document.querySelector('#combinedSteps');
 
 function explain(rating, reason) { return { rating, reason }; }
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    "'": '&#39;',
+    '"': '&quot;'
+  }[char]));
+}
+
+function normalizeEvidenceValue(value) {
+  return String(value || '').trim();
+}
+
+function getConditionEvidence(condition, data) {
+  const fields = Object.fromEntries(evidenceFields.map(field => [field.id, normalizeEvidenceValue(data.get(`${condition.id}.evidence.${field.id}`))]));
+  const readiness = Object.fromEntries(evidenceFields.map(field => [field.id, data.get(`${condition.id}.readiness.${field.id}`) || 'notEntered']));
+  return { fields, readiness };
+}
+
+function groupEvidenceByReadiness(evidence) {
+  return evidenceFields.reduce((groups, field) => {
+    const status = evidence.readiness[field.id] || 'notEntered';
+    groups[status].push(field);
+    return groups;
+  }, { present: [], missing: [], notEntered: [] });
+}
 
 function renderForm() {
   form.innerHTML = conditions.map(condition => `
@@ -327,16 +376,44 @@ function renderForm() {
         <div><h2>${condition.name}</h2><p>${condition.description}</p></div>
         <span class="badge">${condition.code}</span>
       </div>
-      <div class="questions">
-        ${condition.questions.map(q => `
-          <label for="${condition.id}-${q.id}">${q.label}
-            <select id="${condition.id}-${q.id}" name="${condition.id}.${q.id}">
-              ${q.options.map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
-            </select>
-            <span class="help">Choose the answer best supported by medical and lay evidence.</span>
-          </label>
-        `).join('')}
-      </div>
+      <section class="ratingCriteria" aria-label="Rating criteria for ${condition.name}">
+        <div class="sectionHeading">
+          <p class="eyebrow">Affects estimate</p>
+          <h3>Rating criteria</h3>
+          <p>These selections drive the possible rating estimate. Evidence fields below are tracked separately and do not change ratings in this version.</p>
+        </div>
+        <div class="questions">
+          ${condition.questions.map(q => `
+            <label for="${condition.id}-${q.id}">${q.label}
+              <select id="${condition.id}-${q.id}" name="${condition.id}.${q.id}">
+                ${q.options.map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
+              </select>
+              <span class="help">Choose the answer best supported by medical and lay evidence.</span>
+            </label>
+          `).join('')}
+        </div>
+      </section>
+      <section class="evidenceCollection" aria-label="Evidence collection for ${condition.name}">
+        <div class="sectionHeading">
+          <p class="eyebrow evidenceEyebrow">Evidence only</p>
+          <h3>Evidence tracking</h3>
+          <p>Use these optional fields to organize claim-support information. They are in-memory form entries only and do not affect the rating calculation.</p>
+        </div>
+        <div class="evidenceGrid">
+          ${evidenceFields.map(field => `
+            <div class="evidenceField">
+              <label for="${condition.id}-evidence-${field.id}">${field.label}
+                <textarea id="${condition.id}-evidence-${field.id}" name="${condition.id}.evidence.${field.id}" rows="3" placeholder="${field.prompt}"></textarea>
+              </label>
+              <label class="readinessControl" for="${condition.id}-readiness-${field.id}">Readiness
+                <select id="${condition.id}-readiness-${field.id}" name="${condition.id}.readiness.${field.id}">
+                  ${evidenceReadinessOptions.map(([value, label]) => `<option value="${value}">${label}</option>`).join('')}
+                </select>
+              </label>
+            </div>
+          `).join('')}
+        </div>
+      </section>
     </fieldset>
   `).join('');
 }
@@ -345,7 +422,8 @@ function getAnswers() {
   const data = new FormData(form);
   return conditions.map(condition => {
     const answers = Object.fromEntries(condition.questions.map(q => [q.id, data.get(`${condition.id}.${q.id}`) || '0']));
-    return { ...condition, ...condition.estimate(answers) };
+    const evidence = getConditionEvidence(condition, data);
+    return { ...condition, evidence, ...condition.estimate(answers) };
   });
 }
 
@@ -376,6 +454,27 @@ function renderResults() {
       <p><strong>Why this possible estimate was selected:</strong> ${item.reason}</p>
       <p><strong>Regulatory audit note:</strong> ${item.auditNote}</p>
       ${item.notes ? `<ul class="notes">${item.notes.map(note => `<li>${note}</li>`).join('')}</ul>` : ''}
+      <section class="evidenceSummary" aria-label="Evidence summary for ${item.name}">
+        <h4>Evidence Summary</h4>
+        <dl>
+          ${evidenceFields.map(field => {
+            const value = item.evidence.fields[field.id];
+            return `<div><dt>${field.label}</dt><dd>${value ? escapeHtml(value) : '<span class="emptyEvidence">Not entered</span>'}</dd></div>`;
+          }).join('')}
+        </dl>
+      </section>
+      <section class="evidenceReadiness" aria-label="Evidence readiness for ${item.name}">
+        <h4>Evidence Readiness</h4>
+        ${(() => {
+          const groups = groupEvidenceByReadiness(item.evidence);
+          return `
+            <div class="readinessGrid">
+              <div class="readinessBucket present"><strong>Evidence present</strong><ul>${groups.present.length ? groups.present.map(field => `<li>${field.label}</li>`).join('') : '<li>None marked present</li>'}</ul></div>
+              <div class="readinessBucket missing"><strong>Evidence missing</strong><ul>${groups.missing.length ? groups.missing.map(field => `<li>${field.label}</li>`).join('') : '<li>None marked missing</li>'}</ul></div>
+              <div class="readinessBucket notEntered"><strong>Evidence not yet entered</strong><ul>${groups.notEntered.length ? groups.notEntered.map(field => `<li>${field.label}</li>`).join('') : '<li>All evidence categories reviewed</li>'}</ul></div>
+            </div>`;
+        })()}
+      </section>
       <p class="citation"><strong>Reference:</strong> ${item.code}</p>
     </article>
   `).join('');
@@ -393,4 +492,5 @@ function renderResults() {
 renderForm();
 renderResults();
 form.addEventListener('change', renderResults);
+form.addEventListener('input', renderResults);
 document.querySelector('#resetBtn').addEventListener('click', () => { form.reset(); renderResults(); });
