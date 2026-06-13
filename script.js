@@ -414,10 +414,10 @@ const includeFullEvidenceToggle = document.querySelector('#includeFullEvidenceTo
 let claimReportGenerated = false;
 let claimReportStale = false;
 
-const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v11';
-const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v10', 'vaDisabilityCalculator.workspace.v9', 'vaDisabilityCalculator.workspace.v8', 'vaDisabilityCalculator.workspace.v7', 'vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
+const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v12';
+const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v11', 'vaDisabilityCalculator.workspace.v10', 'vaDisabilityCalculator.workspace.v9', 'vaDisabilityCalculator.workspace.v8', 'vaDisabilityCalculator.workspace.v7', 'vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
 const AUTOSAVE_STORAGE_KEY = 'vaDisabilityCalculator.autoSave.v5';
-const WORKSPACE_SCHEMA_VERSION = 11;
+const WORKSPACE_SCHEMA_VERSION = 12;
 
 
 const bodySystemIntakeGroups = [
@@ -471,7 +471,7 @@ function normalizeBodySystemSelections(values) {
 }
 
 function shouldShowAllConditions(selections = getBodySystemSelectionsFromForm()) {
-  return !selections.length || selections.includes('showAllConditions');
+  return selections.includes('showAllConditions');
 }
 
 function getVisibleConditionIds(selections = getBodySystemSelectionsFromForm()) {
@@ -482,14 +482,14 @@ function getVisibleConditionIds(selections = getBodySystemSelectionsFromForm()) 
 function renderBodySystemIntake() {
   if (!bodySystemIntakeForm) return;
   bodySystemIntakeForm.innerHTML = bodySystemIntakeGroups.map(group => `
-    <fieldset class="intakeGroup">
-      <legend>${group.legend}</legend>
+    <details class="intakeGroup">
+      <summary>${group.legend}</summary>
       <div class="intakeOptions">
         ${group.options.map(([value, label]) => `
           <label class="checkboxControl"><input type="checkbox" name="bodySystemSelections" value="${value}"> ${label}</label>
         `).join('')}
       </div>
-    </fieldset>
+    </details>
   `).join('');
 }
 
@@ -499,6 +499,8 @@ function applyConditionVisibility() {
   form?.querySelectorAll('[data-condition-id]').forEach(fieldset => {
     fieldset.hidden = !visibleIds.has(fieldset.dataset.conditionId);
   });
+  const noSelectionMessage = document.querySelector('#conditionSelectionMessage');
+  if (noSelectionMessage) noSelectionMessage.hidden = Boolean(selections.length);
   if (respiratoryIntakeNote) respiratoryIntakeNote.hidden = !selections.includes('breathingProblems');
   if (selections.includes('breathingProblems')) respiratoryIntakeNote.textContent = respiratoryTrackingOnlyNote;
 }
@@ -848,7 +850,8 @@ function renderForm() {
           `).join('')}
         </div>
       </section>
-      <section class="planningCollection" aria-label="Claim planning for ${condition.name}">
+      <details class="planningCollection" aria-label="Claim planning for ${condition.name}">
+        <summary>Status, priority, and planning fields</summary>
         <div class="sectionHeading">
           <p class="eyebrow planningEyebrow">Claim planning</p>
           <h3>Status and priority tracking</h3>
@@ -863,8 +866,9 @@ function renderForm() {
             return `<label for="${condition.id}-planning-${field.id}">${field.label}<textarea id="${condition.id}-planning-${field.id}" name="${name}" rows="3" placeholder="${field.prompt}"></textarea></label>`;
           }).join('')}
         </div>
-      </section>
-      <section class="evidenceCollection" aria-label="Evidence collection for ${condition.name}">
+      </details>
+      <details class="evidenceCollection" aria-label="Evidence collection for ${condition.name}">
+        <summary>Detailed Evidence Tracking</summary>
         <div class="sectionHeading">
           <p class="eyebrow evidenceEyebrow">Evidence only</p>
           <h3>Evidence tracking</h3>
@@ -884,7 +888,7 @@ function renderForm() {
             </div>
           `).join('')}
         </div>
-      </section>
+      </details>
     </fieldset>
   `).join('');
 }
@@ -1161,7 +1165,8 @@ function renderClaimPlanningDashboard(estimates) {
   const unmappedTracking = unmappedConditions.map(condition => formatPlanningItem(condition.name, condition));
 
   claimPlanningDashboard.innerHTML = `
-    <p class="eyebrow">Version 10</p>
+    <summary>Claim Planning Dashboard</summary>
+    <p class="eyebrow">Version 12 advanced workspace</p>
     <h3>Claim Planning Dashboard</h3>
     <p class="scenarioLimitation">This dashboard groups mapped and unmapped conditions by user-entered planning status. It does not change ratings or determine claim strategy.</p>
     <div class="claimSummaryGrid">
@@ -1203,7 +1208,8 @@ function renderClaimPreparationSummary(estimates) {
     .map(([label, count]) => `${label} (${count} condition${count === 1 ? '' : 's'})`);
 
   claimPreparationSummary.innerHTML = `
-    <p class="eyebrow">Version 10</p>
+    <summary>Claim Preparation Summary</summary>
+    <p class="eyebrow">Version 12 advanced workspace</p>
     <h3>Claim Preparation Summary</h3>
     <p class="scenarioLimitation">This summary organizes evidence readiness and entered notes. It does not predict an official decision and does not change any rating calculation.</p>
     <div class="claimSummaryGrid">
@@ -1374,8 +1380,8 @@ function renderResults({ reportDirty = true } = {}) {
             </div>`;
         })()}
       </section>
-      <section class="evidenceGapAnalysis" aria-label="Evidence gap analysis for ${item.name}">
-        <h4>Evidence Gap Analysis</h4>
+      <details class="evidenceGapAnalysis" aria-label="Evidence gap analysis for ${item.name}">
+        <summary>Evidence Gap Analysis</summary>
         <p class="scenarioLimitation">Gaps are based on readiness selections and entered evidence text only; they do not change this condition's rating estimate.</p>
         <ul class="gapList">
           ${item.evidenceGapAnalysis.gaps.map(gap => `
@@ -1387,7 +1393,7 @@ function renderResults({ reportDirty = true } = {}) {
         </ul>
         <h5>Documentation suggestions</h5>
         <ul class="suggestionList">${item.evidenceGapAnalysis.suggestions.map(suggestion => `<li>${escapeHtml(suggestion)}</li>`).join('')}</ul>
-      </section>
+      </details>
       <p class="citation"><strong>Reference:</strong> ${item.code}</p>
     </article>
   `).join('');

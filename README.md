@@ -1,10 +1,10 @@
 # VA Disability Rating Estimator
 
-A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 through Version 11 condition-workspace foundations and demonstrates combined-rating "VA math."
+A mobile-friendly, static educational web app that estimates possible VA disability ratings for selected Version 1 through Version 12 condition-workspace foundations and demonstrates combined-rating "VA math."
 
 ## Regulatory audit status
 
-Version 1 through Version 8 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, added educational estimate-mode scenario labels that preserve the selected-rating math, added evidence-gap analysis with documentation suggestions that remain separate from rating math, added custom unmapped condition tracking records that never create ratings or affect combined-rating math, added a printable claim-preparation report for organizing the current workspace, and added a Version 11 body-system guided intake UI filter that preserves all rating math.
+Version 1 through Version 8 criteria were reviewed against current eCFR rating schedule text in June 2026. The audit preserved the original Version 1 condition list and existing combined-rating VA math, updated outdated GERD logic from the former hiatal-hernia analogy to current DC 7206, preserved diagnostic-code references, added in-app audit notes explaining assumptions and evidence limitations, introduced separate evidence-tracking fields that do not alter rating calculations, added educational estimate-mode scenario labels that preserve the selected-rating math, added evidence-gap analysis with documentation suggestions that remain separate from rating math, added custom unmapped condition tracking records that never create ratings or affect combined-rating math, added a printable claim-preparation report for organizing the current workspace, added a Version 11 body-system guided intake UI filter, and refined that intake in Version 12 so the page starts with compact area selection while preserving all rating math.
 
 ## Version 1 conditions
 
@@ -114,11 +114,19 @@ The report keeps evidence notes concise by default so printed/PDF copies remain 
 
 Version 11 adds a **What areas are affecting you?** guided intake section before the mapped condition modules. Veterans can select broad body areas and symptom groups such as neck, lower back, feet/ankles, headaches, numbness/tingling, sleep problems, reflux, mental health symptoms, or high blood pressure, and the app focuses the visible mapped condition modules on the corresponding existing rating templates.
 
-The guided intake is a UI filter only. It does not create new rating logic, remove existing condition modules, reset hidden condition answers, change evidence-gap analysis, alter claim-planning data, modify reports, or change combined-rating math. If no selections are made, all mapped conditions remain visible by default for backward compatibility. **Show All Conditions** displays every mapped module while preserving all saved ratings and workspace data.
+The guided intake is a UI filter only. It does not create new rating logic, remove existing condition modules, reset hidden condition answers, change evidence-gap analysis, alter claim-planning data, modify reports, or change combined-rating math. In Version 12, if no selections are made, condition modules are hidden by default and the page shows: “Select an area above to begin, or choose Show All Conditions.” **Show All Conditions** displays every mapped module while preserving all saved ratings and workspace data.
 
 Breathing Problems intentionally does not add respiratory rating calculations. Instead, the app displays: “Respiratory conditions are not yet implemented. Consider using a tracking-only custom condition.”
 
-Version 11 browser saves and JSON exports include body-system selections. Imports from Version 10 and earlier still load because absent body-system selections default to an empty selection set, which shows all mapped conditions.
+Version 11 browser saves and JSON exports include body-system selections. Version 12 continues to import Version 11 and earlier workspaces; absent body-system selections default to the new empty guided-intake state without deleting saved condition values.
+
+## Version 12 UI cleanup and guided intake first
+
+Version 12 makes **What areas are affecting you?** the primary workflow immediately after the disclaimer. The body-area selector uses compact collapsible checkbox groups, still supports multiple selections, preserves the Version 11 body-area-to-condition mappings, and keeps **Show All Conditions** for users who want to review every mapped condition.
+
+Condition modules are no longer shown by default when no body area is selected. The app instead prompts users to select an area or choose Show All Conditions. Selecting Lower Back shows the existing Lumbar Spine module only; Show All Conditions reveals every existing mapped module. Hidden modules are only UI-filtered: their form controls are not disabled, so previously saved/imported values remain in form data, local save/export/import payloads, reports, and combined-rating math.
+
+Advanced workspace areas are now behind collapsible panels, including Personal VA Claim Workspace controls, Privacy Notice, custom unmapped condition tracking, Generate Claim Report, Claim Planning Dashboard, Claim Preparation Summary, per-condition Detailed Evidence Tracking, and result-card Evidence Gap Analysis. Rating questions, condition descriptions, proposed results, and basic rationales remain visible for selected conditions. No rating conditions, individual rating calculations, combined-rating math, save/load behavior, export/import structure, evidence fields, planning fields, unmapped conditions, or reports were removed.
 
 ## Project roadmap
 

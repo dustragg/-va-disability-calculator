@@ -20,6 +20,17 @@
       <strong>Disclaimer:</strong> This is an educational estimate only, not legal, medical, or VA claims advice. Results are possible estimates and likely ranges based on simplified rating criteria. Actual VA decisions depend on medical evidence, exams, service connection, effective dates, pyramiding rules, analogous ratings, and adjudicator findings.
     </section>
 
+    <section class="card bodySystemIntake" aria-labelledby="body-system-intake-heading">
+      <div class="sectionHeading">
+        <p class="eyebrow">Version 12 guided intake</p>
+        <h2 id="body-system-intake-heading">What areas are affecting you?</h2>
+        <p>Select one or more broad body areas or symptom groups to focus the condition modules below. Choose Show All Conditions if you want to review every mapped condition. This is only a UI filter and does not change ratings, saved values, evidence, planning data, reports, or combined-rating math.</p>
+      </div>
+      <form id="bodySystemIntakeForm" class="bodySystemIntakeForm" novalidate></form>
+      <p id="respiratoryIntakeNote" class="intakeNote" hidden>Respiratory conditions are not yet implemented. Consider using a tracking-only custom condition.</p>
+    </section>
+
+
     <section class="card intro">
       <h2>How to use this estimator</h2>
       <ol>
@@ -30,7 +41,8 @@
     </section>
 
 
-    <section class="card workspaceControls" aria-labelledby="workspace-controls-heading">
+    <details class="card workspaceControls advancedPanel" aria-labelledby="workspace-controls-heading">
+      <summary>Personal VA Claim Workspace controls</summary>
       <div>
         <p class="eyebrow">Version 11</p>
         <h2 id="workspace-controls-heading">Personal VA Claim Workspace</h2>
@@ -64,9 +76,10 @@
       </label>
       <p id="storageStatus" class="storageStatus">No saved workspace yet.</p>
       <p id="importStatus" class="importStatus" role="status" aria-live="polite"></p>
-    </section>
+    </details>
 
-    <section class="card privacyNotice" aria-labelledby="privacy-notice-heading">
+    <details class="card privacyNotice advancedPanel" aria-labelledby="privacy-notice-heading">
+      <summary>Privacy Notice</summary>
       <p class="eyebrow">Privacy Notice</p>
       <h2 id="privacy-notice-heading">Your workspace data stays under your control</h2>
       <ul>
@@ -75,9 +88,10 @@
         <li>Exported JSON files are downloaded to your device and are controlled entirely by you.</li>
         <li>Anyone with access to this browser profile or exported files may be able to view the information you enter.</li>
       </ul>
-    </section>
+    </details>
 
-    <section class="card unmappedConditionBuilder" aria-labelledby="unmapped-condition-heading">
+    <details class="card unmappedConditionBuilder advancedPanel" aria-labelledby="unmapped-condition-heading">
+      <summary>Add custom unmapped condition</summary>
       <div class="sectionHeading">
         <p class="eyebrow trackingEyebrow">Tracking only</p>
         <h2 id="unmapped-condition-heading">Add custom unmapped condition</h2>
@@ -88,10 +102,11 @@
         <button id="addUnmappedConditionBtn" type="button">Add tracking-only condition</button>
       </div>
       <div id="unmappedConditionList" class="unmappedConditionList" aria-live="polite"></div>
-    </section>
+    </details>
 
 
-    <section class="card reportControls noPrint" aria-labelledby="claim-report-heading">
+    <details class="card reportControls noPrint advancedPanel" aria-labelledby="claim-report-heading">
+      <summary>Generate Claim Report</summary>
       <div>
         <p class="eyebrow">Version 10</p>
         <h2 id="claim-report-heading">Generate Claim Report</h2>
@@ -106,7 +121,7 @@
         <button id="generateReportBtn" type="button">Generate Claim Report</button>
         <button id="printReportBtn" type="button" class="secondary">Print Report</button>
       </div>
-    </section>
+    </details>
 
     <section id="claimReport" class="claimReport card" aria-live="polite" aria-labelledby="claim-report-output-heading">
       <p class="eyebrow">Printable summary</p>
@@ -115,15 +130,7 @@
     </section>
 
 
-    <section class="card bodySystemIntake" aria-labelledby="body-system-intake-heading">
-      <div class="sectionHeading">
-        <p class="eyebrow">Version 11 guided intake</p>
-        <h2 id="body-system-intake-heading">What areas are affecting you?</h2>
-        <p>Select broad body areas or symptom groups to focus the condition modules below. If nothing is selected, all existing mapped conditions remain visible for backward compatibility. This is only a UI filter and does not change ratings, evidence, planning data, reports, or combined-rating math.</p>
-      </div>
-      <form id="bodySystemIntakeForm" class="bodySystemIntakeForm" novalidate></form>
-      <p id="respiratoryIntakeNote" class="intakeNote" hidden>Respiratory conditions are not yet implemented. Consider using a tracking-only custom condition.</p>
-    </section>
+    <p id="conditionSelectionMessage" class="conditionSelectionMessage">Select an area above to begin, or choose Show All Conditions.</p>
 
     <form id="ratingForm" class="conditions" novalidate></form>
 
@@ -135,8 +142,8 @@
         </div>
         <button id="resetBtn" type="button" class="danger">Reset workspace</button>
       </div>
-      <div id="claimPlanningDashboard" class="claimPreparationSummary card"></div>
-      <div id="claimPreparationSummary" class="claimPreparationSummary card"></div>
+      <details id="claimPlanningDashboard" class="claimPreparationSummary card advancedPanel"></details>
+      <details id="claimPreparationSummary" class="claimPreparationSummary card advancedPanel"></details>
       <div id="individualResults" class="resultGrid"></div>
       <div class="scenarioSummary card">
         <h3>Scenario summary</h3>
