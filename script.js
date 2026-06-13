@@ -338,6 +338,16 @@ const form = document.querySelector('#ratingForm');
 const individualResults = document.querySelector('#individualResults');
 const combinedSummary = document.querySelector('#combinedSummary');
 const combinedSteps = document.querySelector('#combinedSteps');
+const saveWorkspaceBtn = document.querySelector('#saveWorkspaceBtn');
+const exportWorkspaceBtn = document.querySelector('#exportWorkspaceBtn');
+const importWorkspaceInput = document.querySelector('#importWorkspaceInput');
+const autoSaveToggle = document.querySelector('#autoSaveToggle');
+const storageStatus = document.querySelector('#storageStatus');
+const importStatus = document.querySelector('#importStatus');
+
+const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v5';
+const AUTOSAVE_STORAGE_KEY = 'vaDisabilityCalculator.autoSave.v5';
+const WORKSPACE_SCHEMA_VERSION = 5;
 
 function explain(rating, reason) { return { rating, reason }; }
 
@@ -418,6 +428,33 @@ function renderForm() {
   `).join('');
 }
 
+function getCurrentFormData() {
+  const data = new FormData(form);
+  const ratings = {};
+  const evidence = {};
+
+  conditions.forEach(condition => {
+    ratings[condition.id] = Object.fromEntries(condition.questions.map(q => [q.id, data.get(`${condition.id}.${q.id}`) || '0']));
+    evidence[condition.id] = getConditionEvidence(condition, data);
+  });
+
+  return { ratings, evidence };
+}
+
+function getWorkspacePayload() {
+  return {
+    schema: 'va-disability-calculator-workspace',
+    version: WORKSPACE_SCHEMA_VERSION,
+    exportedAt: new Date().toISOString(),
+    metadata: {
+      appName: 'VA Disability Rating Estimator',
+      conditionIds: conditions.map(condition => condition.id),
+      evidenceFieldIds: evidenceFields.map(field => field.id)
+    },
+    workspace: getCurrentFormData()
+  };
+}
+
 function getAnswers() {
   const data = new FormData(form);
   return conditions.map(condition => {
@@ -425,6 +462,153 @@ function getAnswers() {
     const evidence = getConditionEvidence(condition, data);
     return { ...condition, evidence, ...condition.estimate(answers) };
   });
+}
+
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function validateWorkspacePayload(payload) {
+  if (!isPlainObject(payload) || payload.schema !== 'va-disability-calculator-workspace' || !isPlainObject(payload.workspace)) {
+    return { valid: false, message: 'This file is not a recognized workspace export.' };
+  }
+
+  if (!isPlainObject(payload.workspace.ratings) || !isPlainObject(payload.workspace.evidence)) {
+    return { valid: false, message: 'Workspace ratings or evidence data is missing.' };
+  }
+
+  return { valid: true };
+}
+
+function applyWorkspacePayload(payload) {
+  const validation = validateWorkspacePayload(payload);
+  if (!validation.valid) return validation;
+
+  conditions.forEach(condition => {
+    const conditionRatings = payload.workspace.ratings[condition.id] || {};
+    condition.questions.forEach(question => {
+      const input = form.elements[`${condition.id}.${question.id}`];
+      const allowedValues = question.options.map(([value]) => value);
+      if (input && allowedValues.includes(conditionRatings[question.id])) {
+        input.value = conditionRatings[question.id];
+      }
+    });
+
+    const conditionEvidence = payload.workspace.evidence[condition.id] || {};
+    const fields = isPlainObject(conditionEvidence.fields) ? conditionEvidence.fields : {};
+    const readiness = isPlainObject(conditionEvidence.readiness) ? conditionEvidence.readiness : {};
+
+    evidenceFields.forEach(field => {
+      const evidenceInput = form.elements[`${condition.id}.evidence.${field.id}`];
+      if (evidenceInput && typeof fields[field.id] === 'string') evidenceInput.value = fields[field.id];
+
+      const readinessInput = form.elements[`${condition.id}.readiness.${field.id}`];
+      const allowedReadiness = evidenceReadinessOptions.map(([value]) => value);
+      if (readinessInput && allowedReadiness.includes(readiness[field.id])) readinessInput.value = readiness[field.id];
+    });
+  });
+
+  renderResults();
+  return { valid: true };
+}
+
+function formatTimestamp(value) {
+  if (!value) return 'No saved workspace yet.';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Saved workspace timestamp unavailable.';
+  return `Last saved: ${date.toLocaleString()}`;
+}
+
+function updateStorageStatus(savedAt) {
+  storageStatus.textContent = formatTimestamp(savedAt);
+}
+
+function loadAutoSavePreference() {
+  autoSaveToggle.checked = localStorage.getItem(AUTOSAVE_STORAGE_KEY) !== 'disabled';
+}
+
+function saveWorkspace({ manual = false } = {}) {
+  const payload = getWorkspacePayload();
+  localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(payload));
+  updateStorageStatus(payload.exportedAt);
+  if (manual) importStatus.textContent = 'Workspace saved in this browser.';
+}
+
+function maybeAutoSave() {
+  if (autoSaveToggle.checked) saveWorkspace();
+}
+
+function loadSavedWorkspace() {
+  const raw = localStorage.getItem(WORKSPACE_STORAGE_KEY);
+  if (!raw) {
+    updateStorageStatus();
+    return;
+  }
+
+  try {
+    const payload = JSON.parse(raw);
+    const result = applyWorkspacePayload(payload);
+    if (result.valid) {
+      updateStorageStatus(payload.exportedAt);
+      importStatus.textContent = 'Saved browser workspace loaded.';
+    } else {
+      updateStorageStatus();
+      importStatus.textContent = result.message;
+    }
+  } catch {
+    updateStorageStatus();
+    importStatus.textContent = 'Saved browser workspace could not be read.';
+  }
+}
+
+function exportWorkspace() {
+  const payload = getWorkspacePayload();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `va-claim-workspace-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  importStatus.textContent = 'Workspace export downloaded.';
+}
+
+function importWorkspace(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.addEventListener('load', () => {
+    try {
+      const payload = JSON.parse(String(reader.result || ''));
+      const result = applyWorkspacePayload(payload);
+      if (!result.valid) {
+        importStatus.textContent = result.message;
+        return;
+      }
+      if (autoSaveToggle.checked) saveWorkspace();
+      importStatus.textContent = 'Workspace imported successfully.';
+    } catch {
+      importStatus.textContent = 'Import failed: choose a valid workspace JSON file.';
+    } finally {
+      importWorkspaceInput.value = '';
+    }
+  });
+  reader.addEventListener('error', () => {
+    importStatus.textContent = 'Import failed: the selected file could not be read.';
+    importWorkspaceInput.value = '';
+  });
+  reader.readAsText(file);
+}
+
+function resetWorkspace() {
+  const confirmed = window.confirm('Clear all rating selections, evidence fields, readiness selections, and saved browser data for this workspace?');
+  if (!confirmed) return;
+  form.reset();
+  localStorage.removeItem(WORKSPACE_STORAGE_KEY);
+  updateStorageStatus();
+  importStatus.textContent = 'Workspace reset and saved browser data removed.';
+  renderResults();
 }
 
 function roundToNearestTen(value) {
@@ -490,7 +674,17 @@ function renderResults() {
 }
 
 renderForm();
+loadAutoSavePreference();
+loadSavedWorkspace();
 renderResults();
-form.addEventListener('change', renderResults);
-form.addEventListener('input', renderResults);
-document.querySelector('#resetBtn').addEventListener('click', () => { form.reset(); renderResults(); });
+form.addEventListener('change', () => { renderResults(); maybeAutoSave(); });
+form.addEventListener('input', () => { renderResults(); maybeAutoSave(); });
+saveWorkspaceBtn.addEventListener('click', () => saveWorkspace({ manual: true }));
+exportWorkspaceBtn.addEventListener('click', exportWorkspace);
+importWorkspaceInput.addEventListener('change', event => importWorkspace(event.target.files[0]));
+autoSaveToggle.addEventListener('change', () => {
+  localStorage.setItem(AUTOSAVE_STORAGE_KEY, autoSaveToggle.checked ? 'enabled' : 'disabled');
+  importStatus.textContent = autoSaveToggle.checked ? 'Auto-save enabled for this browser.' : 'Auto-save disabled. Manual save and export still work.';
+  if (autoSaveToggle.checked) saveWorkspace();
+});
+document.querySelector('#resetBtn').addEventListener('click', resetWorkspace);

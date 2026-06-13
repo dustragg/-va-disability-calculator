@@ -30,16 +30,35 @@
     </section>
 
 
-    <section class="card future-workspace" aria-labelledby="future-workspace-heading">
-      <p class="eyebrow">Roadmap</p>
-      <h2 id="future-workspace-heading">Future Personal Claim Workspace</h2>
-      <p>This estimator is planned to grow into a private claim-preparation workspace while preserving the current rating-estimation tools.</p>
-      <div class="featureGrid" aria-label="Planned future capabilities">
-        <div><strong>Condition templates</strong><span>Mapped conditions can keep audited rating logic while unmapped conditions remain available for tracking.</span></div>
-        <div><strong>Evidence tracking</strong><span>Future records can organize symptoms, severity, medications, flare-ups, functional impact, doctor notes, radiology, DBQ findings, and evidence gaps.</span></div>
-        <div><strong>Estimate modes</strong><span>Conservative, realistic, and optimistic views can show how evidence strength may affect possible outcomes.</span></div>
-        <div><strong>Exports and documents</strong><span>Claim-preparation summaries, portable exports, and future document-ingestion boundaries can be added without changing today's calculations.</span></div>
+    <section class="card workspaceControls" aria-labelledby="workspace-controls-heading">
+      <div>
+        <p class="eyebrow">Version 5</p>
+        <h2 id="workspace-controls-heading">Personal VA Claim Workspace</h2>
+        <p>Save this browser workspace, export a backup JSON file, or import a prior export while keeping rating criteria and evidence tracking separate.</p>
       </div>
+      <div class="workspaceActions" aria-label="Workspace save and export controls">
+        <button id="saveWorkspaceBtn" type="button">Save workspace</button>
+        <button id="exportWorkspaceBtn" type="button" class="secondary">Export Workspace</button>
+        <label class="importButton secondary" for="importWorkspaceInput">Import Workspace</label>
+        <input id="importWorkspaceInput" type="file" accept="application/json,.json" />
+      </div>
+      <label class="autoSaveToggle">
+        <input id="autoSaveToggle" type="checkbox" checked />
+        Enable auto-save to this browser
+      </label>
+      <p id="storageStatus" class="storageStatus">No saved workspace yet.</p>
+      <p id="importStatus" class="importStatus" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="card privacyNotice" aria-labelledby="privacy-notice-heading">
+      <p class="eyebrow">Privacy Notice</p>
+      <h2 id="privacy-notice-heading">Your workspace data stays under your control</h2>
+      <ul>
+        <li>Saved workspace data remains in this browser's local storage on this device.</li>
+        <li>This static app has no account system, cloud sync, database, or server-side storage.</li>
+        <li>Exported JSON files are downloaded to your device and are controlled entirely by you.</li>
+        <li>Anyone with access to this browser profile or exported files may be able to view the information you enter.</li>
+      </ul>
     </section>
 
     <form id="ratingForm" class="conditions" novalidate></form>
@@ -50,7 +69,7 @@
           <p class="eyebrow">Possible estimate</p>
           <h2>Results</h2>
         </div>
-        <button id="resetBtn" type="button" class="secondary">Reset answers</button>
+        <button id="resetBtn" type="button" class="danger">Reset workspace</button>
       </div>
       <div id="individualResults" class="resultGrid"></div>
       <div class="combined card">
