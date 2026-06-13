@@ -105,8 +105,9 @@ textarea {
 }
 textarea::placeholder { color: #8795aa; }
 .readinessControl { font-size: .92rem; }
-.evidenceSummary, .evidenceReadiness { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 1rem; }
-.evidenceSummary h4, .evidenceReadiness h4 { margin: 0 0 .75rem; color: var(--brand-dark); }
+.evidenceSummary, .evidenceReadiness, .evidenceGapAnalysis { border-top: 1px solid var(--border); margin-top: 1rem; padding-top: 1rem; }
+.evidenceSummary h4, .evidenceReadiness h4, .evidenceGapAnalysis h4 { margin: 0 0 .75rem; color: var(--brand-dark); }
+.evidenceGapAnalysis h5 { margin: 1rem 0 .35rem; color: var(--brand-dark); }
 .evidenceSummary dl { display: grid; gap: .55rem; margin: 0; }
 .evidenceSummary dl div { background: #f8fbff; border: 1px solid var(--border); border-radius: 12px; padding: .65rem; }
 .evidenceSummary dt { font-weight: 800; }
@@ -143,6 +144,18 @@ textarea::placeholder { color: #8795aa; }
 .evidenceCaution { border-radius: 12px; padding: .75rem; border: 1px solid var(--border); }
 .evidenceCaution.needsReview { background: #fff7ed; border-left: 5px solid #c2410c; }
 .evidenceCaution.ready { background: #f0fdf4; border-left: 5px solid #15803d; }
+.evidenceStrength { background: #eef6ff; border: 1px solid var(--border); border-left: 5px solid var(--brand); border-radius: 12px; padding: .75rem; }
+.claimPreparationSummary { padding: 1.25rem; margin: 1rem 0; }
+.claimSummaryGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .85rem; }
+.claimSummaryGrid > div { background: #f8fbff; border: 1px solid var(--border); border-radius: 14px; padding: .9rem; }
+.claimSummaryGrid ul { margin: .45rem 0 0; color: var(--muted); }
+.gapList, .suggestionList { display: grid; gap: .45rem; padding-left: 0; list-style: none; }
+.gapList li, .suggestionList li { background: #f8fbff; border: 1px solid var(--border); border-radius: 12px; padding: .65rem; }
+.gapList li { display: grid; gap: .15rem; }
+.gapList li.present { border-left: 5px solid #15803d; }
+.gapList li.missing { border-left: 5px solid #b91c1c; }
+.gapList li.notEntered { border-left: 5px solid #64748b; }
+.gapList span, .suggestionList { color: var(--muted); }
 .scenarioSummary { padding: 1.25rem; margin-top: 1rem; }
 .scenarioLimitation { color: var(--muted); margin-top: 0; }
 .scenarioSummaryGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: .85rem; }

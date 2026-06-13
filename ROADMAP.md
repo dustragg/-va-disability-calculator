@@ -2,7 +2,7 @@
 
 ## Current project status
 
-The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not manage accounts, upload documents, parse DBQs, use cloud sync, or provide legal, medical, or VA claims advice. Version 6 can optionally store workspace data in the user's own browser local storage and export/import user-controlled JSON backups.
+The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not manage accounts, upload documents, parse DBQs, use cloud sync, or provide legal, medical, or VA claims advice. Version 7 can optionally store workspace data in the user's own browser local storage and export/import user-controlled JSON backups.
 
 Current capabilities include:
 
@@ -14,6 +14,7 @@ Current capabilities include:
 - Version 4 evidence tracking fields for every mapped condition, displayed separately from rating calculations.
 - Version 5 browser local-storage save/reload, manual save, JSON export/import, reset, and privacy notice controls.
 - Version 6 conservative, realistic, and optimistic estimate-mode controls, mode-specific result notes, evidence-readiness warnings, and first-pass scenario summary.
+- Version 7 evidence-gap analysis, documentation suggestions, evidence strength labels, and claim-preparation summary.
 
 ## Completed versions
 
@@ -86,8 +87,6 @@ Completed Version 5 work:
 - Added a prominent privacy notice explaining browser-only data handling, no accounts, no cloud sync, no server storage, and user-controlled exports.
 - Preserved existing rating calculations, condition templates, audit notes, evidence tracking, and combined-rating behavior.
 
-## Planned versions
-
 ### Version 6: conservative, realistic, and optimistic estimate modes
 
 Completed Version 6 work:
@@ -99,7 +98,20 @@ Completed Version 6 work:
 - Added a first-pass scenario summary for conservative, realistic, and optimistic combined estimates with an in-UI limitation note that independent scenario logic is not yet implemented.
 - Included selected estimate mode in local storage, JSON export, and JSON import.
 
-### Version 7: claim workspace data structure expansion
+### Version 7: evidence gap analysis and documentation suggestions
+
+Completed Version 7 work:
+
+- Added per-condition Evidence Gap Analysis output for missing diagnosis evidence, current severity evidence, frequency/duration evidence, treatment/medication evidence, functional-impact evidence, work-impact evidence, relevant imaging/radiology evidence, DBQ/C&P exam findings, and doctor/provider comments.
+- Added condition-specific documentation suggestions for migraines, spine/neck/back, shoulder/hip/knee, mental health, sleep apnea, hypertension, GERD, pes planus/bunion, radiculopathy, and femoral nerve entries.
+- Added evidence strength labels: Stronger support, Needs review, and Weak / incomplete support.
+- Added a top-level Claim Preparation Summary grouping conditions by evidence strength and listing common missing evidence categories across the workspace.
+- Preserved all rating calculations, condition templates, audit notes, combined-rating calculations, evidence fields, local save/export/import, reset behavior, and estimate modes.
+- Kept evidence-gap outputs derived at runtime; no separate gap-analysis metadata is stored in local storage or exported JSON.
+
+## Planned versions
+
+### Version 8: claim workspace data structure expansion
 
 Goal: continue the architecture for a future Personal VA Claim Workspace while keeping the app static and preserving the existing estimator.
 
@@ -107,10 +119,9 @@ Planned work:
 
 - Define additional condition-template metadata for unmapped conditions.
 - Expand claim-tracking metadata without coupling it to rating calculations.
-- Add evidence-gap categories and documentation suggestions as structured metadata.
 - Expand conservative, realistic, and optimistic scenario snapshots beyond the Version 6 first-pass framework.
 
-### Version 8: local claim workspace prototype
+### Version 9: local claim workspace prototype
 
 Goal: allow users to manage a personal claim workspace in the browser without accounts, cloud storage, or server persistence.
 
@@ -121,7 +132,7 @@ Potential implementation options:
 - Support unlimited user-added conditions as tracking records.
 - Allow mapped conditions to connect to rating templates while unmapped conditions remain tracking-only.
 
-### Version 9: reports and export workflows
+### Version 10: reports and export workflows
 
 Goal: help users prepare claim-review materials from their own entered data.
 
@@ -133,7 +144,7 @@ Planned work:
 - Export to JSON and printable HTML/PDF-friendly layouts.
 - Plain-language summaries of symptoms, functional impact, and supporting evidence.
 
-### Version 10: document-ready architecture
+### Version 11: document-ready architecture
 
 Goal: prepare for eventual document upload and DBQ parsing without implementing those features prematurely.
 
