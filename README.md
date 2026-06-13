@@ -63,6 +63,16 @@ The top-level Claim Preparation Summary groups conditions by evidence strength a
 
 Limitations: the tool does not upload documents, parse medical records, identify stale or conflicting evidence, determine service connection, provide legal or medical advice, or decide whether evidence is sufficient for an official VA claim. Users must review their own records and the app's suggestions.
 
+## Version 9 condition status and priority tracking
+
+Version 9 adds claim-planning status fields to both mapped rating conditions and custom unmapped tracking-only conditions. Each condition can now track condition status, claim status, service connection theory, medical evidence strength, priority, and personal notes. These planning fields are displayed on mapped result cards, unmapped condition cards, the Claim Preparation Summary, and a new top-level Claim Planning Dashboard.
+
+The Claim Planning Dashboard groups user-entered planning data into high-priority conditions, conditions needing diagnosis, conditions with weak or no medical evidence, conditions planned but not submitted, conditions submitted or decided, and unmapped tracking-only conditions. These groupings are organizational only and do not change individual rating estimates, scenario summaries, or combined-rating VA math.
+
+Version 9 browser saves and JSON exports include planning fields for mapped and unmapped conditions. Imports from Version 5, Version 6, Version 7, and Version 8 remain supported; when older workspace files do not include planning fields, the app restores rating/evidence data and fills planning fields with safe defaults. Unmapped Version 8 claimed-theory values are carried forward into the new service-connection-theory field when possible.
+
+Limitations remain unchanged: the app does not add rating conditions, alter rating calculations, upload documents, parse records with AI, sync accounts or cloud data, or provide legal or medical advice.
+
 ## Version 8 unmapped condition tracking
 
 Version 8 lets users add custom unmapped conditions to the Personal VA Claim Workspace when the app does not yet include rating logic for that condition. Each custom record includes condition name, body system, claimed theory, notes, symptoms, severity, frequency, medications/treatment, functional impact, work impact, doctor comments, imaging/radiology findings, DBQ findings, and general evidence notes.

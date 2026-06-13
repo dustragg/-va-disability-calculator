@@ -2,7 +2,7 @@
 
 ## Current project status
 
-The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not manage accounts, upload documents, parse DBQs, use cloud sync, or provide legal, medical, or VA claims advice. Version 8 can optionally store workspace data in the user's own browser local storage and export/import user-controlled JSON backups.
+The project is currently a static, browser-only educational estimator. It helps users answer symptom-based questions for selected VA disability conditions, displays possible individual rating estimates, and demonstrates combined-rating VA math. It does not manage accounts, upload documents, parse DBQs, use cloud sync, or provide legal, medical, or VA claims advice. Version 9 can optionally store workspace data in the user's own browser local storage and export/import user-controlled JSON backups.
 
 Current capabilities include:
 
@@ -16,6 +16,7 @@ Current capabilities include:
 - Version 6 conservative, realistic, and optimistic estimate-mode controls, mode-specific result notes, evidence-readiness warnings, and first-pass scenario summary.
 - Version 7 evidence-gap analysis, documentation suggestions, evidence strength labels, and claim-preparation summary.
 - Version 8 custom unmapped condition tracking with no rating logic and no combined-rating math impact.
+- Version 9 condition status, claim status, service-connection theory, medical-evidence strength, priority, personal notes, planning dashboard, and planning-aware save/export/import compatibility.
 
 ## Completed versions
 
@@ -122,19 +123,31 @@ Completed Version 8 work:
 - Preserved all mapped condition rating logic, evidence-gap analysis, estimate modes, and save/export behavior.
 - Kept unmapped conditions out of individual rating results, scenario summaries, and VA combined-rating calculations.
 
+### Version 9: condition status and priority tracking
+
+Completed Version 9 work:
+
+- Added claim-planning fields to every mapped condition: condition status, claim status, service connection theory, medical evidence strength, priority, and personal notes.
+- Added the same planning fields to custom unmapped tracking-only conditions.
+- Displayed planning fields on mapped condition result cards, unmapped condition cards, the Claim Preparation Summary, and a new Claim Planning Dashboard.
+- Added dashboard groupings for high-priority conditions, conditions needing diagnosis, weak/no medical evidence, planned but not submitted, submitted/decided, and unmapped tracking-only conditions.
+- Included planning fields in browser local storage, JSON export, and JSON import.
+- Preserved Version 5 through Version 8 workspace imports by applying defaults when planning fields are absent and migrating older unmapped claimed-theory values where possible.
+- Preserved all mapped rating calculations, existing rating conditions, evidence-gap logic, estimate modes, and combined-rating math.
+
 ## Planned versions
 
-### Version 9: claim workspace data structure expansion
+### Version 10: expanded scenario snapshots
 
 Goal: continue the architecture for a future Personal VA Claim Workspace while keeping the app static and preserving the existing estimator.
 
 Planned work:
 
-- Define additional condition-template metadata for unmapped conditions.
-- Expand claim-tracking metadata without coupling it to rating calculations.
+- Expand condition-template metadata for mapped and unmapped records where useful.
+- Refine claim-tracking metadata without coupling it to rating calculations.
 - Expand conservative, realistic, and optimistic scenario snapshots beyond the Version 6 first-pass framework.
 
-### Version 10: local claim workspace prototype
+### Version 11: local claim workspace prototype
 
 Goal: allow users to manage a personal claim workspace in the browser without accounts, cloud storage, or server persistence.
 
@@ -145,7 +158,7 @@ Potential implementation options:
 - Support unlimited user-added conditions as tracking records.
 - Allow mapped conditions to connect to rating templates while unmapped conditions remain tracking-only.
 
-### Version 11: reports and export workflows
+### Version 12: reports and export workflows
 
 Goal: help users prepare claim-review materials from their own entered data.
 
@@ -157,7 +170,7 @@ Planned work:
 - Export to JSON and printable HTML/PDF-friendly layouts.
 - Plain-language summaries of symptoms, functional impact, and supporting evidence.
 
-### Version 12: document-ready architecture
+### Version 13: document-ready architecture
 
 Goal: prepare for eventual document upload and DBQ parsing without implementing those features prematurely.
 
