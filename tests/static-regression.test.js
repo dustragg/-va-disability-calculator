@@ -43,8 +43,15 @@ assert.match(html, /<details class="card unmappedConditionBuilder advancedPanel"
 assert.match(html, /<details class="card reportControls noPrint advancedPanel"/, 'claim report controls should be collapsed');
 assert.match(html, /<details id="claimPlanningDashboard"/, 'claim planning dashboard should be collapsed');
 assert.match(html, /<details id="claimPreparationSummary"/, 'claim preparation summary should be collapsed');
+assert.match(html, /<details class="scenarioSummary card advancedPanel"/, 'scenario summary should be collapsed in advanced results');
 assert.match(script, /<details class="evidenceCollection"/, 'detailed evidence tracking should be collapsed per condition');
-assert.match(script, /<details class="evidenceGapAnalysis"/, 'evidence gap analysis should be collapsed in result cards');
+assert.match(script, /function getRelevantEstimates/, 'results should be filtered to relevant conditions');
+assert.match(script, /visibleIds\.has\(item\.id\) \|\| item\.rating > 0 \|\| hasConditionUserData\(item\)/, 'relevant conditions should include visible, rated, or user-entered data');
+assert.match(script, /resultEmptyState card/, 'empty results state should render when no result cards are relevant');
+assert.match(script, /<details class=\"advancedResultDetails\"[^`]*Selected estimate mode:/s, 'estimate mode explanation should be collapsed in result cards');
+assert.match(script, /<details class=\"evidenceSummary\"/, 'evidence summary should be collapsed in result cards');
+assert.match(script, /<details class=\"evidenceReadiness\"/, 'evidence readiness should be collapsed in result cards');
+assert.match(script, /<details class=\"evidenceGapAnalysis\"/, 'evidence gap analysis should be collapsed in result cards');
 
 assert.match(script, /function calculateCombined\(ratings\)/, 'combined-rating math function should remain present');
 assert.match(script, /const remaining = 100 - combined;\s*const added = remaining \* \(item\.rating \/ 100\);\s*const next = combined \+ added;/, 'combined-rating math should remain unchanged');

@@ -588,6 +588,34 @@ function groupEvidenceByReadiness(evidence) {
   }, { present: [], missing: [], notEntered: [] });
 }
 
+
+function hasNonDefaultRatingAnswers(item) {
+  return item.questions.some(question => {
+    const answer = item.answers?.[question.id];
+    const defaultValue = question.options[0]?.[0] ?? '0';
+    return answer !== undefined && answer !== defaultValue;
+  });
+}
+
+function hasEnteredEvidenceOrReadiness(item) {
+  return evidenceFields.some(field => Boolean(item.evidence.fields[field.id]) || ['present', 'missing'].includes(item.evidence.readiness[field.id]));
+}
+
+function hasEnteredPlanning(item) {
+  return planningFields.some(field => {
+    const value = item.planning[field.id];
+    return field.type === 'select' ? value !== getDefaultPlanningValue(field) : Boolean(value);
+  });
+}
+
+function hasConditionUserData(item) {
+  return hasNonDefaultRatingAnswers(item) || hasEnteredEvidenceOrReadiness(item) || hasEnteredPlanning(item);
+}
+
+function getRelevantEstimates(estimates, visibleIds = getVisibleConditionIds()) {
+  return estimates.filter(item => visibleIds.has(item.id) || item.rating > 0 || hasConditionUserData(item));
+}
+
 function getSelectedEstimateMode() {
   return estimateModes[estimateModeSelect?.value] ? estimateModeSelect.value : 'realistic';
 }
@@ -932,7 +960,7 @@ function getAnswers(modeKey = getSelectedEstimateMode()) {
     const answers = Object.fromEntries(condition.questions.map(q => [q.id, data.get(`${condition.id}.${q.id}`) || '0']));
     const evidence = getConditionEvidence(condition, data);
     const planning = getConditionPlanning(condition, data);
-    const baseline = { ...condition, evidence, planning, ...condition.estimate(answers) };
+    const baseline = { ...condition, answers, evidence, planning, ...condition.estimate(answers) };
     return buildModeSpecificResult(baseline, modeKey);
   });
 }
@@ -1342,68 +1370,97 @@ function renderResults({ reportDirty = true } = {}) {
   if (reportDirty) markClaimReportStale();
   const selectedMode = getSelectedEstimateMode();
   const estimates = getAnswers(selectedMode);
+  const visibleIds = getVisibleConditionIds();
+  const relevantEstimates = getRelevantEstimates(estimates, visibleIds);
   renderClaimPlanningDashboard(estimates);
   renderClaimPreparationSummary(estimates);
   renderUnmappedConditionList();
-  individualResults.innerHTML = estimates.map(item => `
+
+  individualResults.innerHTML = relevantEstimates.length ? relevantEstimates.map(item => `
     <article class="result card">
-      <h3>${item.name}</h3>
+      <h3>${escapeHtml(item.name)}</h3>
       <p class="rating">${item.rating}%</p>
-      <p><strong>Selected estimate mode:</strong> ${item.modeLabel} — ${item.modeDefinition}</p>
-      <p><strong>Rating shown for this mode:</strong> ${item.rating}%</p>
-      <p><strong>Mode rationale:</strong> ${item.modeRationale}</p>
-      <p class="evidenceCaution ${item.underSupported ? 'needsReview' : 'ready'}"><strong>Evidence caution:</strong> ${item.evidenceCaution}</p>
-      <p class="evidenceStrength"><strong>Evidence strength:</strong> ${item.evidenceStrength}</p>
-      <p><strong>May be under-supported because evidence fields are missing or not entered:</strong> ${item.underSupported ? 'Yes' : 'No'}</p>
-      ${renderPlanningDetails(item.planning)}
-      <p><strong>Why this possible estimate was selected:</strong> ${item.reason}</p>
-      <p><strong>Regulatory audit note:</strong> ${item.auditNote}</p>
-      ${item.notes ? `<ul class="notes">${item.notes.map(note => `<li>${note}</li>`).join('')}</ul>` : ''}
-      <section class="evidenceSummary" aria-label="Evidence summary for ${item.name}">
-        <h4>Evidence Summary</h4>
+      <p><strong>Why this possible estimate was selected:</strong> ${escapeHtml(item.reason)}</p>
+      <p class="citation"><strong>Reference:</strong> ${escapeHtml(item.code)}</p>
+
+      <details class="advancedResultDetails" aria-label="Advanced result details for ${escapeHtml(item.name)}">
+        <summary>Advanced result details</summary>
+        <p><strong>Selected estimate mode:</strong> ${escapeHtml(item.modeLabel)} — ${escapeHtml(item.modeDefinition)}</p>
+        <p><strong>Rating shown for this mode:</strong> ${item.rating}%</p>
+        <p><strong>Mode rationale:</strong> ${escapeHtml(item.modeRationale)}</p>
+      </details>
+
+      <details class="advancedResultDetails" aria-label="Evidence caution for ${escapeHtml(item.name)}">
+        <summary>Evidence caution</summary>
+        <p class="evidenceCaution ${item.underSupported ? 'needsReview' : 'ready'}">${escapeHtml(item.evidenceCaution)}</p>
+        <p><strong>May be under-supported because evidence fields are missing or not entered:</strong> ${item.underSupported ? 'Yes' : 'No'}</p>
+      </details>
+
+      <details class="advancedResultDetails" aria-label="Evidence strength for ${escapeHtml(item.name)}">
+        <summary>Evidence strength</summary>
+        <p class="evidenceStrength">${escapeHtml(item.evidenceStrength)}</p>
+      </details>
+
+      <details class="advancedResultDetails" aria-label="Claim planning fields for ${escapeHtml(item.name)}">
+        <summary>Claim planning fields</summary>
+        ${renderPlanningDetails(item.planning)}
+      </details>
+
+      <details class="evidenceSummary" aria-label="Evidence summary for ${escapeHtml(item.name)}">
+        <summary>Evidence Summary</summary>
         <dl>
           ${evidenceFields.map(field => {
             const value = item.evidence.fields[field.id];
-            return `<div><dt>${field.label}</dt><dd>${value ? escapeHtml(value) : '<span class="emptyEvidence">Not entered</span>'}</dd></div>`;
+            return `<div><dt>${escapeHtml(field.label)}</dt><dd>${value ? escapeHtml(value) : '<span class="emptyEvidence">Not entered</span>'}</dd></div>`;
           }).join('')}
         </dl>
-      </section>
-      <section class="evidenceReadiness" aria-label="Evidence readiness for ${item.name}">
-        <h4>Evidence Readiness</h4>
+      </details>
+
+      <details class="evidenceReadiness" aria-label="Evidence readiness for ${escapeHtml(item.name)}">
+        <summary>Evidence Readiness</summary>
         ${(() => {
           const groups = groupEvidenceByReadiness(item.evidence);
           return `
             <div class="readinessGrid">
-              <div class="readinessBucket present"><strong>Evidence present</strong><ul>${groups.present.length ? groups.present.map(field => `<li>${field.label}</li>`).join('') : '<li>None marked present</li>'}</ul></div>
-              <div class="readinessBucket missing"><strong>Evidence missing</strong><ul>${groups.missing.length ? groups.missing.map(field => `<li>${field.label}</li>`).join('') : '<li>None marked missing</li>'}</ul></div>
-              <div class="readinessBucket notEntered"><strong>Evidence not yet entered</strong><ul>${groups.notEntered.length ? groups.notEntered.map(field => `<li>${field.label}</li>`).join('') : '<li>All evidence categories reviewed</li>'}</ul></div>
+              <div class="readinessBucket present"><strong>Evidence present</strong><ul>${groups.present.length ? groups.present.map(field => `<li>${escapeHtml(field.label)}</li>`).join('') : '<li>None marked present</li>'}</ul></div>
+              <div class="readinessBucket missing"><strong>Evidence missing</strong><ul>${groups.missing.length ? groups.missing.map(field => `<li>${escapeHtml(field.label)}</li>`).join('') : '<li>None marked missing</li>'}</ul></div>
+              <div class="readinessBucket notEntered"><strong>Evidence not yet entered</strong><ul>${groups.notEntered.length ? groups.notEntered.map(field => `<li>${escapeHtml(field.label)}</li>`).join('') : '<li>All evidence categories reviewed</li>'}</ul></div>
             </div>`;
         })()}
-      </section>
-      <details class="evidenceGapAnalysis" aria-label="Evidence gap analysis for ${item.name}">
+      </details>
+
+      <details class="evidenceGapAnalysis" aria-label="Evidence gap analysis for ${escapeHtml(item.name)}">
         <summary>Evidence Gap Analysis</summary>
         <p class="scenarioLimitation">Gaps are based on readiness selections and entered evidence text only; they do not change this condition's rating estimate.</p>
         <ul class="gapList">
           ${item.evidenceGapAnalysis.gaps.map(gap => `
             <li class="${gap.status}">
-              <strong>${gap.status === 'present' ? gap.label : gap.missingLabel}</strong>
+              <strong>${escapeHtml(gap.status === 'present' ? gap.label : gap.missingLabel)}</strong>
               <span>${gap.status === 'present' ? 'Evidence marked present or notes entered.' : gap.status === 'missing' ? 'Marked as evidence missing.' : 'Evidence not yet entered.'}</span>
             </li>
           `).join('')}
         </ul>
-        <h5>Documentation suggestions</h5>
+      </details>
+
+      <details class="advancedResultDetails" aria-label="Documentation suggestions for ${escapeHtml(item.name)}">
+        <summary>Documentation suggestions</summary>
         <ul class="suggestionList">${item.evidenceGapAnalysis.suggestions.map(suggestion => `<li>${escapeHtml(suggestion)}</li>`).join('')}</ul>
       </details>
-      <p class="citation"><strong>Reference:</strong> ${item.code}</p>
+
+      <details class="advancedResultDetails" aria-label="Regulatory audit notes for ${escapeHtml(item.name)}">
+        <summary>Regulatory audit notes</summary>
+        <p>${escapeHtml(item.auditNote)}</p>
+        ${item.notes ? `<ul class="notes">${item.notes.map(note => `<li>${escapeHtml(note)}</li>`).join('')}</ul>` : ''}
+      </details>
     </article>
-  `).join('');
+  `).join('') : '<div class="resultEmptyState card">Select an area above to begin, or choose Show All Conditions.</div>';
 
   const scenarioCombined = Object.entries(estimateModes).map(([key, mode]) => ({ key, mode, combined: calculateCombined(getAnswers(key)) }));
   scenarioSummaryGrid.innerHTML = scenarioCombined.map(({ key, mode, combined }) => `
     <div class="scenarioCard ${key === selectedMode ? 'active' : ''}">
-      <strong>${mode.label}</strong>
+      <strong>${escapeHtml(mode.label)}</strong>
       <span>${combined.rounded}%</span>
-      <small>${mode.definition}</small>
+      <small>${escapeHtml(mode.definition)}</small>
     </div>
   `).join('');
 
@@ -1411,7 +1468,7 @@ function renderResults({ reportDirty = true } = {}) {
   combinedSummary.textContent = `${combined.rounded}%`;
   combinedSteps.innerHTML = combined.steps.length ? combined.steps.map(step => `
     <div class="step">
-      <strong>Step ${step.index}: ${step.name} (${step.rating}%)</strong><br>
+      <strong>Step ${step.index}: ${escapeHtml(step.name)} (${step.rating}%)</strong><br>
       Prior combined ${step.previous.toFixed(1)}%; remaining efficiency ${step.remaining.toFixed(1)}%; add ${step.rating}% of remaining = ${step.added.toFixed(1)}%. New raw combined = ${step.next.toFixed(1)}%.
     </div>
   `).join('') + `<div class="step"><strong>Rounding:</strong> Raw combined ${combined.raw.toFixed(1)}% rounds to ${combined.rounded}% under 38 CFR § 4.25.</div>` : '<div class="step">No compensable individual estimates selected. Combined estimate is 0%.</div>';
