@@ -37,6 +37,20 @@ assert.match(script, /bodySystemSelections: getBodySystemSelectionsFromForm\(\)/
 assert.match(script, /applyBodySystemSelections\(payload\.workspace\.bodySystemSelections\)/, 'body-system selections should be imported with sensible defaults');
 assert.match(script, /Respiratory conditions are not yet implemented\. Consider using a tracking-only custom condition\./, 'breathing problems informational note should exist');
 
+assert.match(html, /Content-Security-Policy/, 'static page should declare a defensive CSP before NAS hosting');
+assert.match(html, /connect-src 'none'/, 'CSP should block network calls from the static estimator');
+assert.match(html, /<input id="autoSaveToggle" type="checkbox" \/>/, 'auto-save should be opt-in instead of enabled by default');
+assert.match(html, /Auto-save is off by default/, 'workspace controls should explain the safer auto-save default');
+assert.match(html, /Exports and printed reports can contain sensitive health and claim information/, 'export/report warning should be prominent');
+assert.match(html, /Clear browser data/, 'privacy notice should explain what reset does and does not clear');
+assert.match(script, /MAX_IMPORT_FILE_BYTES = 1024 \* 1024/, 'imports should have a 1 MB file-size limit');
+assert.match(script, /MAX_TEXT_FIELD_LENGTH = 5000/, 'text fields should have a bounded length for imported workspaces');
+assert.match(script, /MAX_UNMAPPED_CONDITIONS = 100/, 'custom condition imports should be capped');
+assert.match(script, /Imported text was shortened to the 5,000 character field limit/, 'oversized imported text should be disclosed');
+assert.match(script, /file\.size > MAX_IMPORT_FILE_BYTES/, 'import should reject oversized files before reading');
+assert.match(readme, /## Privacy and security checklist/, 'README should include a pre-use privacy and security checklist');
+assert.match(readme, /Auto-save is opt-in/, 'README should document opt-in auto-save');
+assert.match(readme, /Do not commit exported workspace JSON files/, 'README should warn against committing sensitive exports');
 assert.match(html, /<details class="card workspaceControls advancedPanel"/, 'workspace controls should be collapsed in an advanced panel');
 assert.match(html, /<details class="card privacyNotice advancedPanel"/, 'privacy notice should be collapsed in an advanced panel');
 assert.match(html, /<details class="card unmappedConditionBuilder advancedPanel"/, 'custom unmapped condition builder should be collapsed');

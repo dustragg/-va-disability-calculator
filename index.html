@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'none'; img-src 'self' data:; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'" />
+  <meta name="referrer" content="no-referrer" />
   <title>VA Disability Rating Estimator</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -46,7 +48,8 @@
       <div>
         <p class="eyebrow">Version 11</p>
         <h2 id="workspace-controls-heading">Personal VA Claim Workspace</h2>
-        <p>Save this browser workspace, choose an educational estimate mode, add claim-planning status fields, track unmapped conditions, generate a printable claim-preparation report, export a backup JSON file, or import a prior export while keeping rating criteria, evidence tracking, and evidence-gap suggestions separate.</p>
+        <p>Save this browser workspace, choose an educational estimate mode, add claim-planning status fields, track unmapped conditions, generate a printable claim-preparation report, export a backup JSON file, or import a prior export while keeping rating criteria, evidence tracking, and evidence-gap suggestions separate. Auto-save is off by default; turn it on only for a trusted private browser profile.</p>
+        <p class="privacyWarning"><strong>Privacy warning:</strong> Exports and printed reports can contain sensitive health and claim information. Store them in an encrypted/private location and do not commit them to GitHub.</p>
       </div>
 
       <div class="estimateModeControls" aria-labelledby="estimate-mode-heading">
@@ -71,8 +74,9 @@
         <input id="importWorkspaceInput" type="file" accept="application/json,.json" />
       </div>
       <label class="autoSaveToggle">
-        <input id="autoSaveToggle" type="checkbox" checked />
+        <input id="autoSaveToggle" type="checkbox" />
         Enable auto-save to this browser
+        <span class="help">Off by default for privacy. Manual save, export, and import still work.</span>
       </label>
       <p id="storageStatus" class="storageStatus">No saved workspace yet.</p>
       <p id="importStatus" class="importStatus" role="status" aria-live="polite"></p>
@@ -87,6 +91,7 @@
         <li>This static app has no account system, cloud sync, database, or server-side storage.</li>
         <li>Exported JSON files are downloaded to your device and are controlled entirely by you.</li>
         <li>Anyone with access to this browser profile or exported files may be able to view the information you enter.</li>
+        <li><strong>Clear browser data:</strong> Reset workspace removes this app's saved browser workspace keys, but it does not delete exported JSON files, printed/PDF reports, downloaded records, browser backups, or files stored elsewhere on your device.</li>
       </ul>
     </details>
 

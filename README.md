@@ -128,6 +128,15 @@ Condition modules are no longer shown by default when no body area is selected. 
 
 Advanced workspace areas are now behind collapsible panels, including Personal VA Claim Workspace controls, Privacy Notice, custom unmapped condition tracking, Generate Claim Report, Claim Planning Dashboard, Claim Preparation Summary, per-condition Detailed Evidence Tracking, and result-card Evidence Gap Analysis. Rating questions, condition descriptions, proposed results, and basic rationales remain visible for selected conditions. No rating conditions, individual rating calculations, combined-rating math, save/load behavior, export/import structure, evidence fields, planning fields, unmapped conditions, or reports were removed.
 
+## Privacy and security checklist
+
+- Auto-save is opt-in. Use it only on a trusted private browser profile because saved workspace data remains in local storage on that device.
+- Exported JSON files and printed/PDF claim reports can contain sensitive health and claim information. Store them in an encrypted/private location.
+- Do not commit exported workspace JSON files, generated PDFs, medical records, screenshots with personal data, or `.env`/key files to GitHub.
+- The static page declares a restrictive Content Security Policy and does not intentionally call a server or external network endpoint.
+- Reset workspace clears this app's saved browser workspace keys, but it does not delete downloaded exports, printed/PDF reports, browser backups, or files saved elsewhere.
+- Import only workspace JSON files you trust. The app rejects files over 1 MB and shortens very large text fields on import.
+
 ## Project roadmap
 
 The project roadmap is to preserve the existing regulatory-audited rating estimator while evolving the app into a future Personal VA Claim Workspace. Planned architecture includes condition templates, mapped and unmapped condition tracking, structured evidence notes, expanded scenario logic, claim-preparation summaries, exports, and future document-ingestion boundaries.

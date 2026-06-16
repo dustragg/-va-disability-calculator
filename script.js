@@ -418,6 +418,11 @@ const WORKSPACE_STORAGE_KEY = 'vaDisabilityCalculator.workspace.v12';
 const LEGACY_WORKSPACE_STORAGE_KEYS = ['vaDisabilityCalculator.workspace.v11', 'vaDisabilityCalculator.workspace.v10', 'vaDisabilityCalculator.workspace.v9', 'vaDisabilityCalculator.workspace.v8', 'vaDisabilityCalculator.workspace.v7', 'vaDisabilityCalculator.workspace.v6', 'vaDisabilityCalculator.workspace.v5'];
 const AUTOSAVE_STORAGE_KEY = 'vaDisabilityCalculator.autoSave.v5';
 const WORKSPACE_SCHEMA_VERSION = 12;
+const MAX_IMPORT_FILE_BYTES = 1024 * 1024;
+const MAX_TEXT_FIELD_LENGTH = 5000;
+const MAX_UNMAPPED_CONDITIONS = 100;
+const IMPORT_TEXT_TRUNCATED_MESSAGE = 'Imported text was shortened to the 5,000 character field limit.';
+let importTextWasTruncated = false;
 
 
 const bodySystemIntakeGroups = [
@@ -546,6 +551,17 @@ function escapeHtml(value) {
 
 function normalizeEvidenceValue(value) {
   return String(value || '').trim();
+}
+
+function normalizeImportedTextValue(value) {
+  const normalized = normalizeEvidenceValue(value);
+  if (normalized.length <= MAX_TEXT_FIELD_LENGTH) return normalized;
+  importTextWasTruncated = true;
+  return normalized.slice(0, MAX_TEXT_FIELD_LENGTH);
+}
+
+function normalizeImportedReadinessValue(value) {
+  return evidenceReadinessOptions.some(([optionValue]) => optionValue === value) ? value : 'notEntered';
 }
 
 function getDefaultPlanningValue(field) {
@@ -782,7 +798,7 @@ function buildModeSpecificResult(item, modeKey) {
 
 
 function normalizeUnmappedCondition(record = {}) {
-  const normalized = Object.fromEntries(unmappedConditionFields.map(field => [field.id, field.type === 'select' ? normalizePlanningValue(field, record[field.id]) : normalizeEvidenceValue(record[field.id])]));
+  const normalized = Object.fromEntries(unmappedConditionFields.map(field => [field.id, field.type === 'select' ? normalizePlanningValue(field, record[field.id]) : normalizeImportedTextValue(record[field.id])]));
   if ((!record.serviceConnectionTheory || record.serviceConnectionTheory === 'unknown') && record.claimedTheory) {
     normalized.serviceConnectionTheory = record.claimedTheory === 'unknown' ? 'notSureYet' : normalizePlanningValue(planningFields.find(field => field.id === 'serviceConnectionTheory'), record.claimedTheory);
   }
@@ -978,6 +994,10 @@ function validateWorkspacePayload(payload) {
     return { valid: false, message: 'Workspace ratings or evidence data is missing.' };
   }
 
+  if (payload.workspace.unmappedConditions && !Array.isArray(payload.workspace.unmappedConditions)) {
+    return { valid: false, message: 'Workspace custom condition data is not in a recognized format.' };
+  }
+
   return { valid: true };
 }
 
@@ -989,11 +1009,12 @@ function applyEstimateModeFromPayload(payload) {
 function applyWorkspacePayload(payload) {
   const validation = validateWorkspacePayload(payload);
   if (!validation.valid) return validation;
+  importTextWasTruncated = false;
 
   applyEstimateModeFromPayload(payload);
   applyBodySystemSelections(payload.workspace.bodySystemSelections);
   unmappedConditions = Array.isArray(payload.workspace.unmappedConditions)
-    ? payload.workspace.unmappedConditions.map(normalizeUnmappedCondition).filter(condition => condition.name)
+    ? payload.workspace.unmappedConditions.slice(0, MAX_UNMAPPED_CONDITIONS).map(normalizeUnmappedCondition).filter(condition => condition.name)
     : [];
 
   conditions.forEach(condition => {
@@ -1012,17 +1033,16 @@ function applyWorkspacePayload(payload) {
 
     evidenceFields.forEach(field => {
       const evidenceInput = form.elements[`${condition.id}.evidence.${field.id}`];
-      if (evidenceInput && typeof fields[field.id] === 'string') evidenceInput.value = fields[field.id];
+      if (evidenceInput && typeof fields[field.id] === 'string') evidenceInput.value = normalizeImportedTextValue(fields[field.id]);
 
       const readinessInput = form.elements[`${condition.id}.readiness.${field.id}`];
-      const allowedReadiness = evidenceReadinessOptions.map(([value]) => value);
-      if (readinessInput && allowedReadiness.includes(readiness[field.id])) readinessInput.value = readiness[field.id];
+      if (readinessInput) readinessInput.value = normalizeImportedReadinessValue(readiness[field.id]);
     });
 
     const conditionPlanning = isPlainObject(payload.workspace.planning?.[condition.id]) ? payload.workspace.planning[condition.id] : {};
     planningFields.forEach(field => {
       const planningInput = form.elements[`${condition.id}.planning.${field.id}`];
-      if (planningInput) planningInput.value = normalizePlanningValue(field, conditionPlanning[field.id]);
+      if (planningInput) planningInput.value = field.type === 'select' ? normalizePlanningValue(field, conditionPlanning[field.id]) : normalizeImportedTextValue(conditionPlanning[field.id]);
     });
   });
 
@@ -1043,7 +1063,7 @@ function updateStorageStatus(savedAt) {
 }
 
 function loadAutoSavePreference() {
-  autoSaveToggle.checked = localStorage.getItem(AUTOSAVE_STORAGE_KEY) !== 'disabled';
+  autoSaveToggle.checked = localStorage.getItem(AUTOSAVE_STORAGE_KEY) === 'enabled';
 }
 
 function saveWorkspace({ manual = false } = {}) {
@@ -1094,11 +1114,16 @@ function exportWorkspace() {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
-  importStatus.textContent = 'Workspace export downloaded.';
+  importStatus.textContent = 'Workspace export downloaded. Treat this file as sensitive health and claim information.';
 }
 
 function importWorkspace(file) {
   if (!file) return;
+  if (file.size > MAX_IMPORT_FILE_BYTES) {
+    importStatus.textContent = 'Import failed: workspace JSON files must be 1 MB or smaller.';
+    importWorkspaceInput.value = '';
+    return;
+  }
   const reader = new FileReader();
   reader.addEventListener('load', () => {
     try {
@@ -1109,7 +1134,7 @@ function importWorkspace(file) {
         return;
       }
       if (autoSaveToggle.checked) saveWorkspace();
-      importStatus.textContent = 'Workspace imported successfully.';
+      importStatus.textContent = importTextWasTruncated ? `Workspace imported successfully. ${IMPORT_TEXT_TRUNCATED_MESSAGE}` : 'Workspace imported successfully.';
     } catch {
       importStatus.textContent = 'Import failed: choose a valid workspace JSON file.';
     } finally {
